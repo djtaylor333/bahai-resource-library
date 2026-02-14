@@ -1,0 +1,51 @@
+# Android
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# APK files
+*.apk
+*.aab
+
+# Generated files
+bin/
+gen/
+out/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Documents (these will be downloaded/managed separately)
+documents/confirmed-official/*.pdf
+documents/pending-permissions/*.pdf
+
+# Extracted text files
+*.txt
+
+# Temporary files
+*.tmp
+*.temp
+~*
+
+# Log files  
+*.log
+
+# Development
+.vscode/
+.vs/
+
+# SSH keys (ensure they stay in system .ssh folder)
+ssh_key*
