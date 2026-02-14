@@ -1,0 +1,35 @@
+{
+  "documents": {
+    "documents\\confirmed-official\\Bahaullah_Kitab-i-Iqan_Sample.txt": {
+      "title": "The Kitab-i-Iqan (Sample)",
+      "author": "Bahá'u'lláh",
+      "category": "Holy Text",
+      "filename": "Bahaullah_Kitab-i-Iqan_Sample.txt",
+      "filepath": "confirmed-official\\Bahaullah_Kitab-i-Iqan_Sample.txt",
+      "size": 1218,
+      "source": "Sample for development",
+      "downloaded": "2026-02-14 15:32:09"
+    },
+    "documents\\confirmed-official\\Abdul-Baha_Some_Answered_Questions_Sample.txt": {
+      "title": "Some Answered Questions (Sample)",
+      "author": "'Abdu'l-Bahá",
+      "category": "Holy Text",
+      "filename": "Abdul-Baha_Some_Answered_Questions_Sample.txt",
+      "filepath": "confirmed-official\\Abdul-Baha_Some_Answered_Questions_Sample.txt",
+      "size": 1110,
+      "source": "Sample for development",
+      "downloaded": "2026-02-14 15:32:09"
+    },
+    "documents\\confirmed-official\\Shoghi_Effendi_World_Order_Sample.txt": {
+      "title": "The World Order of Bahá'u'lláh (Sample)",
+      "author": "Shoghi Effendi",
+      "category": "Administrative Text",
+      "filename": "Shoghi_Effendi_World_Order_Sample.txt",
+      "filepath": "confirmed-official\\Shoghi_Effendi_World_Order_Sample.txt",
+      "size": 1282,
+      "source": "Sample for development",
+      "downloaded": "2026-02-14 15:32:09"
+    }
+  },
+  "last_updated": null
+}

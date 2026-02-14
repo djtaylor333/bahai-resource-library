@@ -1,31 +1,37 @@
 {
-  "version": "0.2.0",
-  "versionName": "Android Project Setup",
+  "version": "0.3.0",
+  "versionName": "Search Functionality Implementation",
   "buildDate": "2026-02-14",
   "changes": [
-    "Complete Android project structure created",
-    "Android app configuration with Material 3 design",
-    "Navigation system with drawer and fragments", 
-    "Splash screen with Bahai 9-pointed star",
-    "Dependencies configured: Room, PdfBox, Hilt",
-    "UI layouts and resources for main features"
+    "Complete document processing pipeline implemented",
+    "Python-based document downloader and processor created", 
+    "SQLite database with FTS5 full-text search capability",
+    "Sample Bahai documents created and indexed",
+    "Room database entities and DAOs implemented",
+    "Search fragment with Material 3 design created",
+    "Full-text search functionality with filters",
+    "Document metadata and processing reports generated"
   ],
-  "nextVersion": "0.3.0",
+  "nextVersion": "0.4.0",
   "features": {
     "implemented": [
-      "Project setup",
-      "Git repository initialization",
+      "Project setup and GitHub integration",
       "Android Studio project structure",
-      "Material 3 UI framework",
+      "Material 3 UI framework", 
       "Navigation components",
-      "Splash screen branding"
+      "Splash screen branding",
+      "Document processing pipeline",
+      "Full-text search system",
+      "Database schema and models",
+      "Search UI with filters"
     ],
     "planned": [
-      "Document processing pipeline",
-      "Search functionality implementation",
-      "PDF text extraction system",
-      "Database schema creation",
-      "Fragment implementations"
+      "Complete remaining UI fragments",
+      "Document reader implementation", 
+      "Notes and bookmarks system",
+      "Online resources integration",
+      "Android Studio installation completion",
+      "APK building and testing"
     ]
   }
 }
