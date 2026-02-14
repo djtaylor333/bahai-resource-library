@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Book Base -->
+    <group
+        android:translateX="54"
+        android:translateY="54">
+
+        <!-- Book Cover Left -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M-24,-16 L-4,-16 L-4,-12 L-4,12 L-4,16 L-24,16 Q-28,16 -28,12 L-28,-12 Q-28,-16 -24,-16 Z" />
+
+        <!-- Book Cover Right -->
+        <path
+            android:fillColor="#E3F2FD"
+            android:pathData="M4,-16 L24,-16 Q28,-16 28,-12 L28,12 Q28,16 24,16 L4,16 L4,12 L4,-12 L4,-16 Z" />
+
+        <!-- Book Spine -->
+        <path
+            android:fillColor="#1565C0"
+            android:pathData="M-4,-16 L4,-16 L4,-12 L4,12 L4,16 L-4,16 L-4,-12 L-4,-16 Z" />
+
+        <!-- Pages -->
+        <path
+            android:fillColor="#FAFAFA"
+            android:pathData="M-2,-14 L2,-14 L2,-10 L2,10 L2,14 L-2,14 L-2,10 L-2,-10 L-2,-14 Z" />
+
+        <!-- Nine-pointed Star (overlaid on the book) -->
+        <group
+            android:scaleX="0.6"
+            android:scaleY="0.6"
+            android:translateY="-2">
+
+            <!-- Star points -->
+            <!-- Top point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M0,-18 L2,-6 L0,-6 L-2,-6 Z" />
+
+            <!-- Top-right point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M12.7,-12.7 L6,0 L4,-2 L2,-4 Z" />
+
+            <!-- Right point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M18,0 L6,2 L6,0 L6,-2 Z" />
+
+            <!-- Bottom-right point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M12.7,12.7 L0,6 L-2,4 L-4,2 Z" />
+
+            <!-- Bottom point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M0,18 L-2,6 L0,6 L2,6 Z" />
+
+            <!-- Bottom-left point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M-12.7,12.7 L-6,0 L-4,2 L-2,4 Z" />
+
+            <!-- Left point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M-18,0 L-6,-2 L-6,0 L-6,2 Z" />
+
+            <!-- Top-left point -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M-12.7,-12.7 L0,-6 L2,-4 L4,-2 Z" />
+
+            <!-- Center point (up) -->
+            <path
+                android:fillColor="#FFD700"
+                android:pathData="M0,-6 L3,0 L0,0 L-3,0 Z" />
+
+            <!-- Center circle -->
+            <circle
+                android:fillColor="#FFD700"
+                android:cx="0"
+                android:cy="0"
+                android:radius="3" />
+
+        </group>
+
+    </group>
+</vector>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baha'i Online Resource Library - Web Preview</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #fafafa;
+            color: #1c1b1f;
+        }
+        
+        .app-container {
+            max-width: 414px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .app-bar {
+            background: #1565C0;
+            color: white;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .bahai-star {
+            width: 32px;
+            height: 32px;
+            color: white;
+        }
+        
+        .app-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        .search-section {
+            padding: 16px;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            font-size: 16px;
+            background: #f5f5f5;
+            outline: none;
+        }
+        
+        .search-box:focus {
+            border-color: #1565C0;
+            background: white;
+        }
+        
+        .filters {
+            margin-top: 16px;
+        }
+        
+        .filter-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #666;
+        }
+        
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .chip {
+            background: #e3f2fd;
+            border: 1px solid #1565C0;
+            color: #1565C0;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .chip:hover, .chip.selected {
+            background: #1565C0;
+            color: white;
+        }
+        
+        .results-section {
+            padding: 0 16px;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .result-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .result-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #1565C0;
+            margin-bottom: 4px;
+        }
+        
+        .result-author {
+            color: #FFB300;
+            font-size: 14px;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+        
+        .result-snippet {
+            color: #444;
+            line-height: 1.4;
+            font-size: 14px;
+        }
+        
+        .result-snippet mark {
+            background: #FFB300;
+            color: #000;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px 16px;
+            color: #666;
+        }
+        
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .stats {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- App Bar -->
+        <div class="app-bar">
+            <svg class="bahai-star" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,2L15.09,8.26L22,9L17,14L18.18,21L12,17.77L5.82,21L7,14L2,9L8.91,8.26L12,2Z"/>
+            </svg>
+            <div class="app-title">Baha'i Online Resource Library</div>
+        </div>
+        
+        <!-- Search Section -->
+        <div class="search-section">
+            <input type="text" class="search-box" placeholder="Search Baha'i texts..." id="searchInput">
+            
+            <div class="filters">
+                <div class="filter-title">Filter by Author</div>
+                <div class="chips" id="authorChips">
+                    <div class="chip" data-author="all">All</div>
+                    <div class="chip" data-author="Bahá'u'lláh">Bahá'u'lláh</div>
+                    <div class="chip" data-author="'Abdu'l-Bahá">'Abdu'l-Bahá</div>
+                    <div class="chip" data-author="Shoghi Effendi">Shoghi Effendi</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-section">
+            <div class="results-header">
+                <span id="resultCount">3 documents available</span>
+                <span id="searchTime">Ready to search</span>
+            </div>
+            
+            <div class="loading" id="loading">Searching...</div>
+            
+            <div id="results">
+                <div class="result-item">
+                    <div class="result-title">The Kitab-i-Iqan (Sample)</div>
+                    <div class="result-author">Bahá'u'lláh</div>
+                    <div class="result-snippet">The Book of Certitude - fundamental theological work covering the nature of progressive revelation, the unity of all the Messengers of God, and spiritual interpretation of scripture.</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-title">Some Answered Questions (Sample)</div>
+                    <div class="result-author">'Abdu'l-Bahá</div>
+                    <div class="result-snippet">Authoritative exposition of Bahá'í teachings covering the nature of the soul and spiritual existence, the relationship between science and religion, and social questions.</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-title">The World Order of Bahá'u'lláh (Sample)</div>
+                    <div class="result-author">Shoghi Effendi</div>
+                    <div class="result-snippet">Letters explaining the administrative principles of the Bahá'í Faith, the Administrative Order as embryonic World Order, and collective decision-making.</div>
+                </div>
+            </div>
+            
+            <div class="no-results" id="noResults" style="display: none;">
+                <div class="no-results-icon">🔍</div>
+                <div>No results found</div>
+                <div style="font-size: 14px; margin-top: 8px;">Try different keywords or clear filters</div>
+            </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="stats">
+            <div class="stat-item">
+                <span>Total Documents:</span>
+                <span>3</span>
+            </div>
+            <div class="stat-item">
+                <span>Total Pages:</span>
+                <span>27</span>
+            </div>
+            <div class="stat-item">
+                <span>Total Words:</span>
+                <span>535</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const documents = [
+            {
+                title: "The Kitab-i-Iqan (Sample)",
+                author: "Bahá'u'lláh",
+                category: "Holy Text",
+                content: "The Book of Certitude fundamental theological work progressive revelation unity Messengers God spiritual interpretation scripture tests trials means growth faith wine certitude cleanse earthly ears idle talk minds vain imaginings hearts worldly affections eyes perisheth Islamic theology",
+                fullText: "The Kitab-i-Iqan (The Book of Certitude) by Bahá'u'lláh. This work addresses the nature of revelation and the station of the Prophets of God. Key themes include the nature of progressive revelation, the unity of all the Messengers of God, spiritual interpretation of scripture, the concept of the Return, and tests and trials as means of spiritual growth."
+            },
+            {
+                title: "Some Answered Questions (Sample)",
+                author: "'Abdu'l-Bahá",
+                category: "Holy Text", 
+                content: "authoritative exposition teachings nature soul spiritual existence science religion Biblical Quranic interpretation social economic questions rational spirit entered body disintegration composition substance through exists contrary substance body exists",
+                fullText: "Some Answered Questions by 'Abdu'l-Bahá. Authoritative exposition of Bahá'í teachings compiled from talks. Topics include the nature of the soul and spiritual existence, the relationship between science and religion, Biblical and Quranic interpretation, and social and economic questions."
+            },
+            {
+                title: "The World Order of Bahá'u'lláh (Sample)",
+                author: "Shoghi Effendi",
+                category: "Administrative Text",
+                content: "administrative principles Administrative Order embryonic World Order spiritual administrative aspects elected institutions collective decision-making framework wondrous System unification administration world commonwealth fundamentally different Prophet previously established",
+                fullText: "The World Order of Bahá'u'lláh by Shoghi Effendi, Guardian of the Bahá'í Faith. Letters explaining the administrative principles of the Bahá'í Faith, the Administrative Order as embryonic World Order, the relationship between spiritual and administrative aspects, the role of elected institutions, and the concept of collective decision-making."
+            }
+        ];
+        
+        let currentFilter = 'all';
+        
+        function performSearch(query) {
+            const startTime = Date.now();
+            const results = document.getElementById('results');
+            const noResults = document.getElementById('noResults');
+            const resultCount = document.getElementById('resultCount');
+            const searchTime = document.getElementById('searchTime');
+            const loading = document.getElementById('loading');
+            
+            // Show loading
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            noResults.style.display = 'none';
+            
+            setTimeout(() => {
+                let filteredDocs = documents;
+                
+                // Apply author filter
+                if (currentFilter !== 'all') {
+                    filteredDocs = documents.filter(doc => doc.author === currentFilter);
+                }
+                
+                // Apply search query
+                if (query) {
+                    filteredDocs = filteredDocs.filter(doc => 
+                        doc.content.toLowerCase().includes(query.toLowerCase()) ||
+                        doc.title.toLowerCase().includes(query.toLowerCase()) ||
+                        doc.author.toLowerCase().includes(query.toLowerCase())
+                    );
+                }
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                if (filteredDocs.length === 0) {
+                    results.style.display = 'none';
+                    noResults.style.display = 'block';
+                    resultCount.textContent = 'No results found';
+                } else {
+                    results.style.display = 'block';
+                    noResults.style.display = 'none';
+                    
+                    // Render results
+                    results.innerHTML = filteredDocs.map(doc => {
+                        let snippet = doc.fullText;
+                        if (query) {
+                            const regex = new RegExp(`(${query})`, 'gi');
+                            snippet = snippet.replace(regex, '<mark>$1</mark>');
+                        }
+                        
+                        return `
+                            <div class="result-item">
+                                <div class="result-title">${doc.title}</div>
+                                <div class="result-author">${doc.author}</div>
+                                <div class="result-snippet">${snippet}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    resultCount.textContent = `${filteredDocs.length} result${filteredDocs.length !== 1 ? 's' : ''} found`;
+                }
+                
+                const endTime = Date.now();
+                searchTime.textContent = `Search completed in ${endTime - startTime}ms`;
+            }, 300); // Simulate search delay
+        }
+        
+        // Search input handler
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+        
+        // Filter chips handler
+        document.getElementById('authorChips').addEventListener('click', (e) => {
+            if (e.target.classList.contains('chip')) {
+                // Update chip selection
+                document.querySelectorAll('#authorChips .chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+                e.target.classList.add('selected');
+                
+                // Update filter
+                currentFilter = e.target.dataset.author;
+                
+                // Re-run search
+                const query = document.getElementById('searchInput').value;
+                performSearch(query);
+            }
+        });
+        
+        // Result item click handler
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.result-item')) {
+                const title = e.target.closest('.result-item').querySelector('.result-title').textContent;
+                alert(`Opening: ${title}\n\n(In the actual app, this would open the full document reader)`);
+            }
+        });
+        
+        // Initialize with "all" filter selected
+        document.querySelector('#authorChips .chip[data-author="all"]').classList.add('selected');
+    </script>
+</body>
+</html>

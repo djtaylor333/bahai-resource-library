@@ -30,9 +30,9 @@
         android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
 
-        <!-- Main Activity with splash screen -->
+        <!-- Splash Screen Activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.BahaiResourceLibrary.Splash"
             android:screenOrientation="portrait">
@@ -41,6 +41,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BahaiResourceLibrary"
+            android:screenOrientation="portrait" />
+
+        <!-- PDF Reader Activity -->
+        <activity
+            android:name=".ui.reader.PdfReaderActivity"
+            android:exported="false"
+            android:theme="@style/Theme.BahaiResourceLibrary.Reader"
+            android:parentActivityName=".MainActivity" />
 
         <!-- Document Reader Activity -->
         <activity

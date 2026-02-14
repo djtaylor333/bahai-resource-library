@@ -6,7 +6,7 @@ plugins {
     id 'kotlin-parcelize'
 }
 
-android {
+    android {
     namespace 'com.bahairesources.library'
     compileSdk 34
 
@@ -14,8 +14,8 @@ android {
         applicationId "com.bahairesources.library"
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 3
+        versionName "0.3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         
@@ -34,10 +34,18 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug // TODO: Configure proper signing
+            signingConfig signingConfigs.debug // Using debug signing for now
+            
+            // Enable resource shrinking
+            shrinkResources true
+            
+            // Zip align enabled
+            zipAlignEnabled true
         }
         debug {
             debuggable true
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
         }
     }
     
@@ -112,6 +120,23 @@ dependencies {
     
     // PDF Processing - PdfBox Android
     implementation 'com.tom_roush:pdfbox-android:2.0.27.0'
+    
+    // PDF Viewer with Annotations/Bookmarks
+    implementation 'com.github.barteksc:android-pdf-viewer:3.2.0'
+    implementation 'io.github.afreakyelf:pdf-viewer:2.1.1'
+    
+    // Advanced PDF handling
+    implementation 'com.github.mhiew:android-pdf-viewer:3.2.0-beta.3'
+    
+    // Text similarity and fuzzy search
+    implementation 'me.xdrop:fuzzywuzzy:1.4.0'
+    implementation 'org.apache.lucene:lucene-core:9.8.0'
+    implementation 'org.apache.lucene:lucene-queryparser:9.8.0'
+    implementation 'org.apache.lucene:lucene-analyzers-common:9.8.0'
+    
+    // Semantic search capabilities
+    implementation 'dev.langchain4j:langchain4j:0.27.1'
+    implementation 'dev.langchain4j:langchain4j-embeddings:0.27.1'
     
     // JSON Processing
     implementation 'com.squareup.moshi:moshi:1.15.0'

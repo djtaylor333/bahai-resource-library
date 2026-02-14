@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Nine-Pointed Star for Bahá'í Faith -->
+    <group
+        android:translateX="60"
+        android:translateY="60">
+
+        <!-- Central circle -->
+        <circle
+            android:fillColor="#FFD700"
+            android:cx="0"
+            android:cy="0"
+            android:radius="8" />
+
+        <!-- First point (top) -->
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M0,-50 L5,-15 L0,-12 L-5,-15 Z" />
+
+        <!-- Second point (top-right) -->
+        <path
+            android:fillColor="#FFCC02"
+            android:pathData="M35.4,-35.4 L15.9,-10.6 L12.7,-12.7 L10.6,-15.9 Z" />
+
+        <!-- Third point (right) -->
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M50,0 L15,5 L12,0 L15,-5 Z" />
+
+        <!-- Fourth point (bottom-right) -->
+        <path
+            android:fillColor="#FFCC02"
+            android:pathData="M35.4,35.4 L10.6,15.9 L12.7,12.7 L15.9,10.6 Z" />
+
+        <!-- Fifth point (bottom) -->
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M0,50 L-5,15 L0,12 L5,15 Z" />
+
+        <!-- Sixth point (bottom-left) -->
+        <path
+            android:fillColor="#FFCC02"
+            android:pathData="M-35.4,35.4 L-15.9,10.6 L-12.7,12.7 L-10.6,15.9 Z" />
+
+        <!-- Seventh point (left) -->
+        <path
+            android:fillColor="#FFD700"
+            android:pathData="M-50,0 L-15,-5 L-12,0 L-15,5 Z" />
+
+        <!-- Eighth point (top-left) -->
+        <path
+            android:fillColor="#FFCC02"
+            android:pathData="M-35.4,-35.4 L-10.6,-15.9 L-12.7,-12.7 L-15.9,-10.6 Z" />
+
+        <!-- Ninth point (intermediate top) -->
+        <path
+            android:fillColor="#FFC107"
+            android:pathData="M0,-25 L8,-8 L0,-5 L-8,-8 Z" />
+
+        <!-- Additional rays for visual enhancement -->
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L0,-40" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L28.3,-28.3" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L40,0" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L28.3,28.3" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L0,40" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L-28.3,28.3" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L-40,0" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L-28.3,-28.3" />
+
+        <path
+            android:fillColor="#FFF176"
+            android:strokeColor="#FFD700"
+            android:strokeWidth="1"
+            android:pathData="M0,0 L0,-20" />
+
+    </group>
+</vector>
