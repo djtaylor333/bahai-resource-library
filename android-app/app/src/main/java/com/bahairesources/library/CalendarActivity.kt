@@ -16,6 +16,9 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var holyDaysList: LinearLayout
     private var currentDate = Calendar.getInstance()
     private var showOtherReligions = false
+    private var isDarkMode = false
+    
+    private lateinit var locationService: LocationService
     
     // Bahá'í calendar data (simplified - in real app this would be more comprehensive)
     private val holydaysData = mapOf(
@@ -51,11 +54,14 @@ class CalendarActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize theme
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(20, 30, 20, 30)
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
         }
         
         // Header
@@ -222,12 +228,12 @@ class CalendarActivity : AppCompatActivity() {
         }
         
         val locationButton = Button(this).apply {
-            text = "📍 Set Location"
+            text = "📍 Get Location Times"
             setBackgroundColor(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             textSize = 12f
-            setOnClickListener { showLocationSettings() }
+            setOnClickListener { requestLocationAndUpdateTimes() }
         }
         
         optionsRow.addView(otherReligionsToggle)
@@ -386,12 +392,16 @@ class CalendarActivity : AppCompatActivity() {
         
         val detailsView = TextView(this).apply {
             text = buildString {
-                if (bahaDate.description.isNotEmpty()) append("${bahaDate.description}\\n")
-                append("Type: ${bahaDate.type}\\n")
-                if (bahaDate.timing.isNotEmpty()) append("Time: ${bahaDate.timing}")
-            }
+                if (bahaDate.description.isNotEmpty()) append("${bahaDate.description}\n")
+                append("Type: ${bahaDate.type}\n")
+                if (bahaDate.timing.isNotEmpty()) {
+                    append("Time: ${getLocationBasedTiming(bahaDate, dateStr)}")
+                } else {
+                    append("Time: ${bahaDate.timing}")
+                }
+            }.replace("\\n", "\n")
             textSize = 12f
-            setTextColor(Color.parseColor("#333333"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
         }
         
         layout.addView(titleView)
@@ -419,19 +429,84 @@ class CalendarActivity : AppCompatActivity() {
             Toast.LENGTH_SHORT).show()
     }
     
-    private fun showLocationSettings() {
+    private fun requestLocationAndUpdateTimes() {
+        if (!LocationService.hasLocationPermission(this)) {
+            LocationService.requestLocationPermission(this)
+        } else {
+            showLocationBasedTimes()
+        }
+    }
+    
+    private fun showLocationBasedTimes() {
+        val sunTimes = LocationService.getSunTimesForLocation(this)
+        
+        val message = buildString {
+            append("🌅 Current Location Times:\n\n")
+            append("📍 ${sunTimes.location}\n\n")
+            append("🌅 Sunrise: ${sunTimes.sunrise}\n")
+            append("🌅 Sunset: ${sunTimes.sunset}\n\n")
+            
+            // Add Fast information if currently in Fast period
+            val calendar = Calendar.getInstance()
+            val month = calendar.get(Calendar.MONTH) + 1
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            
+            if ((month == 3 && day >= 2 && day <= 20) || (month == 2 && day >= 26)) {
+                append("⏰ Fast Period Active:\n")
+                append("• Begin fast at sunrise: ${sunTimes.sunrise}\n")
+                append("• Break fast at sunset: ${sunTimes.sunset}\n\n")
+            }
+            
+            append("These times will be used for Feast days and holy day observances.")
+        }
+        
         val dialog = android.app.AlertDialog.Builder(this)
-            .setTitle("🌅 Location Settings")
-            .setMessage("Location-based sunset/sunrise times coming in next update!\\n\\n" +
-                       "This will provide:\\n" +
-                       "• Accurate sunset times for Feast days\\n" +
-                       "• Sunrise/sunset for the Fast\\n" +
-                       "• Local time zone adjustments\\n" +
-                       "• GPS or manual location entry")
-            .setPositiveButton("Got it!") { dialog, _ -> dialog.dismiss() }
+            .setTitle("📍 Location-Based Times")
+            .setMessage(message)
+            .setPositiveButton("Update Calendar") { dialog, _ -> 
+                updateHolyDaysList() // Refresh with location-based times
+                dialog.dismiss() 
+            }
+            .setNegativeButton("Close") { dialog, _ -> dialog.dismiss() }
             .create()
         
         dialog.show()
+    }
+    
+    private fun getLocationBasedTiming(bahaDate: BahaiDate, dateStr: String): String {
+        return when {
+            bahaDate.timing.contains("Sunset") -> {
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
+                if (date != null && LocationService.hasLocationPermission(this)) {
+                    val sunTimes = LocationService.getSunTimesForLocation(this, date)
+                    "Sunset ${sunTimes.sunset} (${sunTimes.location})"
+                } else {
+                    bahaDate.timing
+                }
+            }
+            bahaDate.name.contains("Fast") -> {
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
+                if (date != null && LocationService.hasLocationPermission(this)) {
+                    val sunTimes = LocationService.getSunTimesForLocation(this, date)
+                    "Sunrise: ${sunTimes.sunrise}, Sunset: ${sunTimes.sunset}"
+                } else {
+                    "Sunrise to Sunset (location required for exact times)"
+                }
+            }
+            else -> bahaDate.timing
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int, 
+        permissions: Array<String>, 
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001 && grantResults.isNotEmpty() && 
+            grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            showLocationBasedTimes()
+        }
     }
     
     private fun createSpacing(height: Int): View {

@@ -11,9 +11,13 @@ import androidx.cardview.widget.CardView
 
 class MainActivity : AppCompatActivity() {
     
+    private var isDarkMode = false
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
+            // Initialize theme
+            isDarkMode = ThemeManager.isDarkMode(this)
             Log.d("BahaiApp", "MainActivity started")
             createUI()
         } catch (e: Exception) {
@@ -27,14 +31,14 @@ class MainActivity : AppCompatActivity() {
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(30, 50, 30, 50)
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
         }
         
         // Header Section
         val headerCard = CardView(this).apply {
             radius = 16f
             cardElevation = 4f
-            setCardBackgroundColor(Color.parseColor("#FFFFFF"))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#FFFFFF"))
             setPadding(20, 20, 20, 20)
         }
         
@@ -46,21 +50,21 @@ class MainActivity : AppCompatActivity() {
         val titleText = TextView(this).apply {
             text = "Bahá'í Resource Library"
             textSize = 28f
-            setTextColor(Color.parseColor("#1976D2"))
+            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
             setPadding(0, 0, 0, 10)
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.5.0 - Now with Prayers & Calendar!"
+            text = "v0.6.0 - Dark Mode & Location Services!"
             textSize = 14f
-            setTextColor(Color.parseColor("#757575"))
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
             setPadding(0, 0, 0, 20)
         }
         
         val quoteText = TextView(this).apply {
             text = "\"The earth is but one country, and mankind its citizens.\" - Bahá'u'lláh"
             textSize = 16f
-            setTextColor(Color.parseColor("#424242"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#424242"))
             setPadding(0, 0, 0, 0)
         }
         
@@ -68,6 +72,49 @@ class MainActivity : AppCompatActivity() {
         headerLayout.addView(versionText)
         headerLayout.addView(quoteText)
         headerCard.addView(headerLayout)
+        
+        // Theme Toggle Section
+        val themeCard = CardView(this).apply {
+            radius = 8f
+            cardElevation = 3f
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#E8F5E8"))
+        }
+        
+        val themeLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(20, 15, 20, 15)
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+        
+        val themeIcon = TextView(this).apply {
+            text = if (isDarkMode) "🌙" else "☀️"
+            textSize = 20f
+            setPadding(0, 0, 15, 0)
+        }
+        
+        val themeText = TextView(this).apply {
+            text = if (isDarkMode) "Dark Mode" else "Light Mode"
+            textSize = 16f
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#2E7D32"))
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        val toggleButton = Button(this).apply {
+            text = "Toggle"
+            textSize = 14f
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#4CAF50") else Color.parseColor("#2E7D32"))
+            setTextColor(Color.WHITE)
+            setPadding(20, 10, 20, 10)
+            setOnClickListener {
+                ThemeManager.toggleDarkMode(this@MainActivity)
+                recreate() // Restart activity to apply theme
+            }
+        }
+        
+        themeLayout.addView(themeIcon)
+        themeLayout.addView(themeText)
+        themeLayout.addView(toggleButton)
+        themeCard.addView(themeLayout)
         
         // Search Section
         val searchCard = createFeatureCard(
@@ -104,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         val navigationCard = CardView(this).apply {
             radius = 8f
             cardElevation = 3f
-            setCardBackgroundColor(Color.parseColor("#FFF3E0"))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#FFF3E0"))
         }
         
         val navLayout = LinearLayout(this).apply {
@@ -129,6 +176,8 @@ class MainActivity : AppCompatActivity() {
         navigationCard.addView(navLayout)
         
         layout.addView(headerCard)
+        layout.addView(createSpacing(15))
+        layout.addView(themeCard)
         layout.addView(createSpacing(15))
         layout.addView(navigationCard)
         layout.addView(createSpacing(20))
@@ -161,7 +210,7 @@ class MainActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 12f
             cardElevation = 6f
-            setCardBackgroundColor(Color.parseColor("#FFFFFF"))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#FFFFFF"))
             isClickable = true
             isFocusable = true
         }
@@ -184,14 +233,14 @@ class MainActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             textSize = 18f
-            setTextColor(Color.parseColor("#212121"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#212121"))
             setPadding(0, 0, 0, 8)
         }
         
         val descView = TextView(this).apply {
             text = description
             textSize = 14f
-            setTextColor(Color.parseColor("#757575"))
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
         }
         
         textLayout.addView(titleView)
@@ -208,7 +257,7 @@ class MainActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 12f
             cardElevation = 4f
-            setCardBackgroundColor(Color.parseColor("#E3F2FD"))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#E3F2FD"))
         }
         
         val layout = LinearLayout(this).apply {
@@ -219,20 +268,20 @@ class MainActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = "📚 Library Contents"
             textSize = 18f
-            setTextColor(Color.parseColor("#1976D2"))
+            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
             setPadding(0, 0, 0, 15)
         }
         
         val statsText = TextView(this).apply {
-            text = "• Central Figures: 10 documents\\n" +
-                  "• Administrative Writings: 6 documents\\n" +
-                  "• Ruhi Institute Books: 7 documents\\n" +
-                  "• Devotional Materials: 2 collections\\n" +
-                  "• Study Materials: 1 guide\\n" +
-                  "• Compilations: 2 documents\\n\\n" +
+            text = "• Central Figures: 10 documents\n" +
+                  "• Administrative Writings: 6 documents\n" +
+                  "• Ruhi Institute Books: 7 documents\n" +
+                  "• Devotional Materials: 2 collections\n" +
+                  "• Study Materials: 1 guide\n" +
+                  "• Compilations: 2 documents\n\n" +
                   "Total: 28 official Bahá'í texts"
             textSize = 14f
-            setTextColor(Color.parseColor("#424242"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#424242"))
         }
         
         layout.addView(titleView)
@@ -258,7 +307,7 @@ class MainActivity : AppCompatActivity() {
             isClickable = onClick != null
             isFocusable = onClick != null
             if (isActive) {
-                setBackgroundColor(Color.parseColor("#E3F2FD"))
+                setBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#E3F2FD"))
             }
         }
         
@@ -271,7 +320,9 @@ class MainActivity : AppCompatActivity() {
         val labelView = TextView(this).apply {
             text = label
             textSize = 10f
-            setTextColor(if (isActive) Color.parseColor("#1976D2") else Color.parseColor("#666666"))
+            setTextColor(if (isActive) 
+                (if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2")) 
+                else (if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666")))
             gravity = android.view.Gravity.CENTER
             setPadding(0, 4, 0, 0)
         }
