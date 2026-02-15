@@ -5,12 +5,19 @@
     <!-- Basic permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- Location permissions for sunrise/sunset calculations -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
+        android:name=".BahaiResourceApplication"
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Material.Light"
-        tools:targetApi="31">
+        android:theme="@style/Theme.AppCompat.Light"
+        tools:targetApi="35">
 
         <!-- Simple Main Activity -->
         <activity
@@ -20,6 +27,48 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        
+        <!-- Search Activity -->
+        <activity
+            android:name=".SearchActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Browse Activity -->
+        <activity
+            android:name=".BrowseActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Bookmarks Activity -->
+        <activity
+            android:name=".BookmarksActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Prayers Activity -->
+        <activity
+            android:name=".PrayersActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Prayer Reader Activity -->
+        <activity
+            android:name=".PrayerReaderActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Calendar Activity -->
+        <activity
+            android:name=".CalendarActivity"
+            android:exported="false">
+        </activity>
+        
+        <!-- Document Reader Activity -->
+        <activity
+            android:name=".DocumentReaderActivity"
+            android:exported="false">
         </activity>
 
     </application>

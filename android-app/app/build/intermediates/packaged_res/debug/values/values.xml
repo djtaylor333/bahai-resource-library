@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="bahai_accent">#BD986A</color>
+    <color name="bahai_primary">#2E4057</color>
+    <color name="bahai_secondary">#5C6B73</color>
+    <color name="ic_launcher_background">#FFFFFF</color>
     <string name="app_name">Bahá\'í Resource Library</string>
 </resources>
