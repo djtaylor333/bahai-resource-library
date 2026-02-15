@@ -9,6 +9,7 @@ import androidx.cardview.widget.CardView
 class BrowseActivity : AppCompatActivity() {
     
     private lateinit var categoryLayout: LinearLayout
+    private var isDarkMode = false
     
     // Document categories with counts
     private val categories = listOf(
@@ -23,11 +24,14 @@ class BrowseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize dark mode
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL  
             setPadding(20, 30, 20, 30)
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
         }
         
         // Header

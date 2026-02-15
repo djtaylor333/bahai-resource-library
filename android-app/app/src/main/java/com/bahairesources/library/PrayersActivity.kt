@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.*
 import android.graphics.Color
 import androidx.cardview.widget.CardView
+import android.content.Intent
 
 class PrayersActivity : AppCompatActivity() {
     
@@ -44,8 +45,8 @@ class PrayersActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Check for dark mode preference (we'll implement this toggle later)
-        isDarkMode = false
+        // Initialize dark mode
+        isDarkMode = ThemeManager.isDarkMode(this)
         
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
@@ -85,67 +86,62 @@ class PrayersActivity : AppCompatActivity() {
         
         val backButton = Button(this).apply {
             text = "← Back"
-            setBackgroundColor(Color.parseColor("#1976D2"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             setOnClickListener { finish() }
         }
         
         val titleText = TextView(this).apply {
-            text = "🙏 Prayers"
+            text = "🙏 Prayers Collection"
             textSize = 20f
-            setTextColor(Color.parseColor("#1976D2"))
-            setPadding(30, 15, 0, 0)
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
+            setPadding(20, 10, 0, 10)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
-        val modeButton = Button(this).apply {
-            text = if (isDarkMode) "☀️" else "🌙"
-            setBackgroundColor(Color.parseColor("#FF9800"))
-            setTextColor(Color.WHITE)
+        val toggleButton = Button(this).apply {
+            text = if (isDarkMode) "🌙" else "☀️"
+            textSize = 16f
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#37474F") else Color.parseColor("#E0E0E0"))
+            setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#333333"))
             setPadding(15, 10, 15, 10)
-            setOnClickListener { toggleDarkMode() }
+            setOnClickListener {
+                ThemeManager.toggleDarkMode(this@PrayersActivity)
+                recreate()
+            }
         }
         
         headerLayout.addView(backButton)
         headerLayout.addView(titleText)
-        
-        val spacer = android.view.View(this).apply {
-            layoutParams = LinearLayout.LayoutParams(0, 0, 1f)
-        }
-        headerLayout.addView(spacer)
-        headerLayout.addView(modeButton)
-        
+        headerLayout.addView(toggleButton)
         return headerLayout
     }
     
     private fun createInfoCard(): CardView {
         val card = CardView(this).apply {
-            radius = 8f
-            cardElevation = 3f
-            setCardBackgroundColor(Color.parseColor("#E3F2FD"))
-        }
-        
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(20, 15, 20, 15)
+            radius = 12f
+            cardElevation = 4f
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#E8F5E8"))
         }
         
         val infoText = TextView(this).apply {
-            text = "📖 Prayer samples and structures are provided for demonstration. For complete official prayers, please visit bahai.org/library or consult official Bahá'í publications."
-            textSize = 12f
-            setTextColor(Color.parseColor("#1976D2"))
+            text = "Explore prayers from Bahá'u'lláh, Abdul-Bahá, and the Báb organized by purpose and occasion. Tap any category to see the available prayers."
+            textSize = 14f
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#2E7D32"))
+            setPadding(20, 20, 20, 20)
         }
         
-        layout.addView(infoText)
-        card.addView(layout)
-        
+        card.addView(infoText)
         return card
     }
     
     private fun displayPrayerCategories() {
+        categoryLayout.removeAllViews()
+        
         prayerCategories.forEach { category ->
-            val card = createCategoryCard(category)
-            categoryLayout.addView(card)
+            val categoryCard = createCategoryCard(category)
+            categoryLayout.addView(categoryCard)
             categoryLayout.addView(createSpacing(15))
         }
     }
@@ -154,92 +150,85 @@ class PrayersActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 12f
             cardElevation = 6f
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2C2C2C") else Color.WHITE)
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#FFFFFF"))
             isClickable = true
             isFocusable = true
+            setOnClickListener { showPrayerList(category) }
         }
         
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(25, 25, 25, 25)
-        }
-        
-        val headerLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+            setPadding(20, 20, 20, 20)
         }
         
         val titleView = TextView(this).apply {
             text = category.name
             textSize = 18f
-            setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#212121"))
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
+            setPadding(0, 0, 0, 8)
         }
-        
-        val countView = TextView(this).apply {
-            text = "${category.prayers.size} prayers"
-            textSize = 12f
-            setTextColor(Color.parseColor("#1976D2"))
-            setPadding(10, 0, 0, 0)
-        }
-        
-        headerLayout.addView(titleView)
-        headerLayout.addView(countView)
         
         val descView = TextView(this).apply {
             text = category.description
             textSize = 14f
-            setTextColor(if (isDarkMode) Color.parseColor("#CCCCCC") else Color.parseColor("#757575"))
-            setPadding(0, 8, 0, 0)
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            setPadding(0, 0, 0, 8)
         }
         
-        layout.addView(headerLayout)
+        val countView = TextView(this).apply {
+            text = "${category.prayers.size} prayers available"
+            textSize = 12f
+            setTextColor(if (isDarkMode) Color.parseColor("#81C784") else Color.parseColor("#4CAF50"))
+        }
+        
+        layout.addView(titleView)
         layout.addView(descView)
+        layout.addView(countView)
         card.addView(layout)
-        
-        card.setOnClickListener {
-            showPrayerList(category)
-        }
         
         return card
     }
     
     private fun showPrayerList(category: PrayerCategory) {
-        val prayersList = category.prayers.joinToString("\\n\\n") { prayer ->
-            "• ${prayer.title}\\n  — ${prayer.author}\\n  ${prayer.preview.take(50)}..."
-        }
-        
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle(category.name)
-            .setMessage("${category.description}\\n\\nPrayers in this category:\\n\\n$prayersList\\n\\n" +
-                       "📖 Tap 'Read Prayer' to view a sample structure.\\n\\n" +
-                       "For complete official prayers, visit:\\n" +
-                       "• bahai.org/library\\n" +
-                       "• Local Bahá'í centers\\n" +
-                       "• Official Bahá'í publications")
-            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
-            .setNeutralButton("Read Prayer") { _, _ ->
-                if (category.prayers.isNotEmpty()) {
-                    showPrayerReader(category.prayers[0])
-                }
-            }
+            .setMessage("Select a prayer to read:")
             .create()
         
+        val scrollView = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
+        }
+        
+        category.prayers.forEach { prayer ->
+            val prayerButton = Button(this).apply {
+                text = "${prayer.title}\nby ${prayer.author}"
+                textSize = 14f
+                setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
+                setTextColor(Color.WHITE)
+                setPadding(15, 15, 15, 15)
+                setOnClickListener {
+                    dialog.dismiss()
+                    showPrayerReader(prayer)
+                }
+            }
+            layout.addView(prayerButton)
+            layout.addView(createSpacing(10))
+        }
+        
+        scrollView.addView(layout)
+        dialog.setView(scrollView)
         dialog.show()
     }
     
     private fun showPrayerReader(prayer: Prayer) {
-        // Create a full-screen prayer reading activity (simplified version)
-        val intent = android.content.Intent(this, PrayerReaderActivity::class.java).apply {
+        val intent = Intent(this, PrayerReaderActivity::class.java).apply {
             putExtra("prayer_title", prayer.title)
             putExtra("prayer_author", prayer.author)
-            putExtra("prayer_text", prayer.preview)
+            putExtra("prayer_text", prayer.text)
         }
         startActivity(intent)
-    }
-    
-    private fun toggleDarkMode() {
-        // This will be implemented with proper preferences later
-        Toast.makeText(this, "Dark/Light mode toggle coming in next update!", Toast.LENGTH_SHORT).show()
     }
     
     private fun createSpacing(height: Int): android.view.View {
@@ -252,14 +241,6 @@ class PrayersActivity : AppCompatActivity() {
     }
 }
 
-data class PrayerCategory(
-    val name: String,
-    val description: String,
-    val prayers: List<Prayer>
-)
-
-data class Prayer(
-    val title: String,
-    val author: String,
-    val preview: String  // Short preview or beginning of prayer
-)
+// Data models
+data class PrayerCategory(val name: String, val description: String, val prayers: List<Prayer>)
+data class Prayer(val title: String, val author: String, val text: String)

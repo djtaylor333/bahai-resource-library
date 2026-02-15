@@ -14,6 +14,7 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var searchInput: EditText
     private lateinit var resultsLayout: LinearLayout
     private lateinit var resultsCount: TextView
+    private var isDarkMode = false
     
     // Sample document data - in a real app this would come from a database
     private val documents = listOf(
@@ -50,11 +51,14 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize dark mode
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(20, 30, 20, 30)
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
         }
         
         // Header

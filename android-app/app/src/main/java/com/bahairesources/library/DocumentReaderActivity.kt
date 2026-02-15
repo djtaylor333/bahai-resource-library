@@ -18,6 +18,9 @@ class DocumentReaderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize dark mode
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         val title = intent.getStringExtra("document_title") ?: "Document"
         val category = intent.getStringExtra("document_category") ?: "Unknown"
         val fileName = intent.getStringExtra("document_filename") ?: ""

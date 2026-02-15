@@ -17,6 +17,9 @@ class PrayerReaderActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize dark mode from ThemeManager
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         val title = intent.getStringExtra("prayer_title") ?: "Prayer"
         val author = intent.getStringExtra("prayer_author") ?: "Unknown"
         val prayerText = intent.getStringExtra("prayer_text") ?: "Prayer text not available"

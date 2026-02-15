@@ -12,6 +12,7 @@ class BookmarksActivity : AppCompatActivity() {
     private lateinit var bookmarksLayout: LinearLayout
     private lateinit var emptyStateLayout: LinearLayout
     private lateinit var prefs: SharedPreferences
+    private var isDarkMode = false
     
     // Sample bookmarks - in a real app these would be stored in a database
     private val sampleBookmarks = listOf(
@@ -41,13 +42,16 @@ class BookmarksActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Initialize dark mode
+        isDarkMode = ThemeManager.isDarkMode(this)
+        
         prefs = getSharedPreferences("BookmarksPrefs", MODE_PRIVATE)
         
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(20, 30, 20, 30) 
-            setBackgroundColor(Color.parseColor("#F8F9FA"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
         }
         
         // Header
