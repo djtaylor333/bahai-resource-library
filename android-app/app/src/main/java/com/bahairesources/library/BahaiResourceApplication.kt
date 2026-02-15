@@ -1,19 +1,15 @@
 package com.bahairesources.library
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
 
 /**
  * Application class for Bahai Resource Library
- * Initializes Hilt for dependency injection
+ * Simple implementation without dependencies
  */
-@HiltAndroidApp
 class BahaiResourceApplication : Application() {
     
     override fun onCreate() {
         super.onCreate()
-        
-        // Initialize PdfBox for Android
-        com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(applicationContext)
+        // Simple initialization without external libraries
     }
 }
