@@ -1,0 +1,60 @@
+{
+  "version": "0.6.0",
+  "versionCode": 9,
+  "buildDate": "2026-02-16T09:04:15-00:00",
+  "apkSize": "6.6 MB",
+  "targetSdk": 35,
+  "minSdk": 24,
+  "architecture": "universal",
+  "buildType": "debug",
+  "features": [
+    "Navigation System",
+    "Document Reading",
+    "Prayer Collections", 
+    "Bahá'í Calendar",
+    "Location Services",
+    "Dark/Light Mode",
+    "Theme Management",
+    "Holy Day Integration",
+    "GPS Calculations",
+    "Astronomical Timing"
+  ],
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE", 
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION"
+  ],
+  "activities": [
+    "MainActivity",
+    "SearchActivity", 
+    "BrowseActivity",
+    "PrayersActivity",
+    "PrayerReaderActivity",
+    "CalendarActivity", 
+    "DocumentReaderActivity",
+    "BookmarksActivity"
+  ],
+  "completedRequirements": {
+    "navigation": true,
+    "textFormatting": true, 
+    "documentReading": true,
+    "prayersSection": true,
+    "bahaiCalendar": true,
+    "locationBasedTimes": true,
+    "timeRecommendations": true,
+    "fastSupport": true,
+    "multiYearCalendar": true,
+    "darkLightMode": true
+  },
+  "technicalHighlights": [
+    "Complete dark mode integration across all activities",
+    "LocationService with GPS and astronomical calculations", 
+    "ThemeManager with SharedPreferences persistence",
+    "Professional Material Design interface",
+    "Real-time sunrise/sunset calculations",
+    "Comprehensive navigation system",
+    "6 categorized prayer collections",
+    "Interactive Bahá'í calendar with holy days"
+  ]
+}
