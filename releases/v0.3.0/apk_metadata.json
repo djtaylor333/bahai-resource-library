@@ -1,0 +1,47 @@
+{
+  "app_info": {
+    "name": "Bahá'í Resource Library",
+    "package_name": "com.bahairesources.library",
+    "version_name": "0.3.0",
+    "version_code": 3
+  },
+  "build_info": {
+    "build_type": "release",
+    "min_sdk": 21,
+    "target_sdk": 34,
+    "compile_sdk": 34,
+    "build_tools": "30.0.3",
+    "gradle_version": "8.0",
+    "android_gradle_plugin": "8.1.0",
+    "kotlin_version": "1.9.0"
+  },
+  "features": [
+    "PDF reading with annotations",
+    "Intelligent search engine",
+    "Bookmark and notes system",
+    "Reading progress tracking",
+    "Material 3 design",
+    "Offline-first functionality",
+    "Nine-pointed star branding",
+    "28 official Bahá'í documents included"
+  ],
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.READ_MEDIA_DOCUMENTS"
+  ],
+  "estimated_size": {
+    "apk_mb": 15.2,
+    "installed_mb": 45.8
+  },
+  "supported_architectures": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86",
+    "x86_64"
+  ],
+  "build_timestamp": "2026-02-15 08:46:24 UTC",
+  "git_commit": "cc423a6",
+  "git_tag": "v0.3.0"
+}
