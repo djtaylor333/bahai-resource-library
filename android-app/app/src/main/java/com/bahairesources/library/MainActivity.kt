@@ -16,8 +16,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
-            // Initialize theme
-            isDarkMode = ThemeManager.isDarkMode(this)
+            // Initialize theme from SettingsManager
+            isDarkMode = SettingsManager.isDarkMode(this)
             Log.d("BahaiApp", "MainActivity started")
             createUI()
         } catch (e: Exception) {
@@ -55,8 +55,8 @@ class MainActivity : AppCompatActivity() {
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.6.0 - Dark Mode & Location Services!"
-            textSize = 14f
+            text = "v0.7.0 - Universal Settings & Enhanced Features!"
+            textSize = SettingsManager.getFontSize(this@MainActivity)
             setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
             setPadding(0, 0, 0, 20)
         }
@@ -100,14 +100,14 @@ class MainActivity : AppCompatActivity() {
         }
         
         val toggleButton = Button(this).apply {
-            text = "Toggle"
-            textSize = 14f
+            text = "⚙️ Settings"
+            textSize = SettingsManager.getFontSize(this@MainActivity) - 2f
             setBackgroundColor(if (isDarkMode) Color.parseColor("#4CAF50") else Color.parseColor("#2E7D32"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             setOnClickListener {
-                ThemeManager.toggleDarkMode(this@MainActivity)
-                recreate() // Restart activity to apply theme
+                val intent = Intent(this@MainActivity, SettingsActivity::class.java)
+                startActivity(intent)
             }
         }
         
@@ -155,8 +155,13 @@ class MainActivity : AppCompatActivity() {
         }
         
         val navLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+            orientation = LinearLayout.VERTICAL
             setPadding(15, 15, 15, 15)
+        }
+        
+        // Main navigation row
+        val mainNavRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_HORIZONTAL
         }
         
@@ -167,13 +172,50 @@ class MainActivity : AppCompatActivity() {
         val calendarBtn = createNavButton("📅", "Calendar") { showCalendarInterface() }
         val bookmarksBtn = createNavButton("🔖", "Bookmarks") { showBookmarksInterface() }
         
-        navLayout.addView(homeBtn)
-        navLayout.addView(searchBtn)
-        navLayout.addView(browseBtn)
-        navLayout.addView(prayersBtn)
-        navLayout.addView(calendarBtn)
-        navLayout.addView(bookmarksBtn)
+        mainNavRow.addView(homeBtn)
+        mainNavRow.addView(searchBtn)
+        mainNavRow.addView(browseBtn)
+        mainNavRow.addView(prayersBtn)
+        mainNavRow.addView(calendarBtn)
+        mainNavRow.addView(bookmarksBtn)
+        
+        // Additional features row
+        val featuresRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_HORIZONTAL
+            setPadding(0, 10, 0, 0)
+        }
+        
+        val feastBtn = createNavButton("🌙", "Feasts") { showFeastInterface() }
+        val linksBtn = createNavButton("🔗", "Links") { showLinksInterface() }
+        val aboutBtn = createNavButton("ℹ️", "About") { showAboutInterface() }
+        
+        featuresRow.addView(feastBtn)
+        featuresRow.addView(linksBtn)
+        featuresRow.addView(aboutBtn)
+        
+        navLayout.addView(mainNavRow)
+        navLayout.addView(featuresRow)
         navigationCard.addView(navLayout)
+        
+        // Add new feature cards for the main sections
+        val feastCard = createFeatureCard(
+            "🌙 Feast Resources",
+            "Complete guide to nineteen-day feasts with all Bahá'í month information",
+            "#6A1B9A"
+        ) { showFeastInterface() }
+        
+        val linksCard = createFeatureCard(
+            "🔗 Official Links",
+            "Access authoritative Bahá'í websites and institutions",
+            "#00796B"
+        ) { showLinksInterface() }
+        
+        val aboutCard = createFeatureCard(
+            "ℹ️ About",
+            "App information, version details, and credits",
+            "#5D4037"
+        ) { showAboutInterface() }
         
         layout.addView(headerCard)
         layout.addView(createSpacing(15))
@@ -188,6 +230,12 @@ class MainActivity : AppCompatActivity() {
         layout.addView(readingCard)
         layout.addView(createSpacing(15))
         layout.addView(bookmarksCard)
+        layout.addView(createSpacing(15))
+        layout.addView(feastCard)
+        layout.addView(createSpacing(15))
+        layout.addView(linksCard)
+        layout.addView(createSpacing(15))
+        layout.addView(aboutCard)
         layout.addView(createSpacing(20))
         layout.addView(statsCard)
         
@@ -357,6 +405,26 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
     
+    private fun showBookmarksInterface() {
+        val intent = Intent(this, BookmarksActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showFeastInterface() {
+        val intent = Intent(this, FeastResourcesActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showLinksInterface() {
+        val intent = Intent(this, LinksActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showAboutInterface() {
+        val intent = Intent(this, AboutActivity::class.java)
+        startActivity(intent)
+    }
+    
     private fun showReadingInterface() {
         showFeatureDialog("📖 Reading Interface",
             "Reading interface in development!\n\n" +
@@ -365,11 +433,6 @@ class MainActivity : AppCompatActivity() {
             "• Night mode\n" +
             "• Font size adjustment\n" +
             "• Reading progress tracking")
-    }
-    
-    private fun showBookmarksInterface() {
-        val intent = Intent(this, BookmarksActivity::class.java)
-        startActivity(intent)
     }
     
     private fun showFeatureDialog(title: String, message: String) {

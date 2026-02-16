@@ -15,6 +15,7 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var resultsLayout: LinearLayout
     private lateinit var resultsCount: TextView
     private var isDarkMode = false
+    private var currentFontSize = SettingsManager.FONT_MEDIUM
     
     // Sample document data - in a real app this would come from a database
     private val documents = listOf(
@@ -51,8 +52,9 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize dark mode
-        isDarkMode = ThemeManager.isDarkMode(this)
+        // Initialize settings
+        isDarkMode = SettingsManager.isDarkMode(this)
+        currentFontSize = SettingsManager.getFontSize(this)
         
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
@@ -69,21 +71,35 @@ class SearchActivity : AppCompatActivity() {
         
         val backButton = Button(this).apply {
             text = "← Back"
-            setBackgroundColor(Color.parseColor("#1976D2"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
+            textSize = currentFontSize
             setOnClickListener { finish() }
         }
         
         val titleText = TextView(this).apply {
             text = "🔍 Search Library"
-            textSize = 20f
-            setTextColor(Color.parseColor("#1976D2"))
-            setPadding(30, 15, 0, 0)
+            textSize = currentFontSize + 4f
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
+            setPadding(20, 10, 0, 10)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        val settingsButton = Button(this).apply {
+            text = "⚙️"
+            textSize = currentFontSize
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#37474F") else Color.parseColor("#E0E0E0"))
+            setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#333333"))
+            setPadding(15, 10, 15, 10)
+            setOnClickListener {
+                startActivity(Intent(this@SearchActivity, SettingsActivity::class.java))
+            }
         }
         
         headerLayout.addView(backButton)
         headerLayout.addView(titleText)
+        headerLayout.addView(settingsButton)
         
         // Search Input
         searchInput = EditText(this).apply {

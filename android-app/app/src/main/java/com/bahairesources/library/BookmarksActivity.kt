@@ -6,6 +6,7 @@ import android.widget.*
 import android.graphics.Color
 import androidx.cardview.widget.CardView
 import android.content.SharedPreferences
+import android.content.Intent
 
 class BookmarksActivity : AppCompatActivity() {
     
@@ -13,6 +14,7 @@ class BookmarksActivity : AppCompatActivity() {
     private lateinit var emptyStateLayout: LinearLayout
     private lateinit var prefs: SharedPreferences
     private var isDarkMode = false
+    private var currentFontSize = SettingsManager.FONT_MEDIUM
     
     // Sample bookmarks - in a real app these would be stored in a database
     private val sampleBookmarks = listOf(
@@ -42,8 +44,9 @@ class BookmarksActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize dark mode
-        isDarkMode = ThemeManager.isDarkMode(this)
+        // Initialize settings
+        isDarkMode = SettingsManager.isDarkMode(this)
+        currentFontSize = SettingsManager.getFontSize(this)
         
         prefs = getSharedPreferences("BookmarksPrefs", MODE_PRIVATE)
         
@@ -102,27 +105,77 @@ class BookmarksActivity : AppCompatActivity() {
     
     private fun createHeader(): LinearLayout {
         val headerLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(10, 10, 10, 20)
+        }
+        
+        // Top navigation row
+        val navRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(10, 10, 10, 30)
         }
         
         val backButton = Button(this).apply {
             text = "← Back"
-            setBackgroundColor(Color.parseColor("#1976D2"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
+            textSize = currentFontSize
             setOnClickListener { finish() }
         }
         
         val titleText = TextView(this).apply {
             text = "🔖 My Bookmarks"
-            textSize = 20f
-            setTextColor(Color.parseColor("#1976D2"))
+            textSize = currentFontSize + 4f
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
             setPadding(30, 15, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
-        headerLayout.addView(backButton)
-        headerLayout.addView(titleText)
+        val settingsButton = Button(this).apply {
+            text = "⚙️"
+            textSize = currentFontSize
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#37474F") else Color.parseColor("#E0E0E0"))
+            setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#333333"))
+            setPadding(15, 10, 15, 10)
+            setOnClickListener {
+                startActivity(Intent(this@BookmarksActivity, SettingsActivity::class.java))
+            }
+        }
+        
+        navRow.addView(backButton)
+        navRow.addView(titleText)
+        navRow.addView(settingsButton)
+        
+        // Search row
+        val searchRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 15, 0, 0)
+        }
+        
+        val searchInput = EditText(this).apply {
+            hint = "Search bookmarks..."
+            textSize = currentFontSize
+            setPadding(15, 12, 15, 12)
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#FFFFFF"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            setHintTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        val searchButton = Button(this).apply {
+            text = "🔍"
+            textSize = currentFontSize
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#4CAF50") else Color.parseColor("#2E7D32"))
+            setTextColor(Color.WHITE)
+            setPadding(15, 12, 15, 12)
+            setOnClickListener { performBookmarkSearch(searchInput.text.toString()) }
+        }
+        
+        searchRow.addView(searchInput)
+        searchRow.addView(searchButton)
+        
+        headerLayout.addView(navRow)
+        headerLayout.addView(searchRow)
         
         return headerLayout
     }
@@ -351,7 +404,11 @@ class BookmarksActivity : AppCompatActivity() {
     }
     
     private fun shareBookmark(bookmark: Bookmark) {
-        val shareText = "\"${bookmark.content}\"\\n\\n— ${bookmark.documentTitle} (${bookmark.location})\\n\\nShared from Bahá'í Resource Library"
+        val shareText = """"${bookmark.content}"
+
+— ${bookmark.documentTitle} (${bookmark.location})
+
+Shared from Bahá'í Resource Library"""
         Toast.makeText(this, "Share functionality: $shareText", Toast.LENGTH_LONG).show()
     }
     
@@ -390,6 +447,49 @@ class BookmarksActivity : AppCompatActivity() {
                 height
             )
         }
+    }
+    
+    private fun performBookmarkSearch(query: String) {
+        if (query.trim().isEmpty()) {
+            Toast.makeText(this, "Please enter search terms", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val searchResults = sampleBookmarks.filter { bookmark ->
+            bookmark.documentTitle.lowercase().contains(query.lowercase()) ||
+            bookmark.content.lowercase().contains(query.lowercase()) ||
+            bookmark.location.lowercase().contains(query.lowercase()) ||
+            bookmark.category.lowercase().contains(query.lowercase())
+        }
+        
+        if (searchResults.isEmpty()) {
+            Toast.makeText(this, "No bookmarks found matching '$query'", Toast.LENGTH_SHORT).show()
+        } else {
+            showSearchResults(searchResults, query)
+        }
+    }
+    
+    private fun showSearchResults(results: List<Bookmark>, query: String) {
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("🔍 Search Results: \"$query\"")
+            .setMessage("Found ${results.size} matching bookmarks:")
+            .create()
+        
+        val scrollView = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
+        }
+        
+        results.forEach { bookmark ->
+            val bookmarkCard = createBookmarkCard(bookmark)
+            layout.addView(bookmarkCard)
+            layout.addView(createSpacing(10))
+        }
+        
+        scrollView.addView(layout)
+        dialog.setView(scrollView)
+        dialog.show()
     }
 }
 

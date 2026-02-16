@@ -7,18 +7,22 @@ import android.graphics.Color
 import android.graphics.Typeface
 import androidx.cardview.widget.CardView
 import android.view.View
+import android.content.Intent
 
 class PrayerReaderActivity : AppCompatActivity() {
     
     private lateinit var prayerTextView: TextView
     private var currentTextSize = 16f
     private var isDarkMode = false
+    private var currentFontSize = SettingsManager.FONT_MEDIUM
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize dark mode from ThemeManager
-        isDarkMode = ThemeManager.isDarkMode(this)
+        // Initialize settings from SettingsManager
+        isDarkMode = SettingsManager.isDarkMode(this)
+        currentFontSize = SettingsManager.getFontSize(this)
+        currentTextSize = currentFontSize
         
         val title = intent.getStringExtra("prayer_title") ?: "Prayer"
         val author = intent.getStringExtra("prayer_author") ?: "Unknown"
@@ -49,8 +53,8 @@ class PrayerReaderActivity : AppCompatActivity() {
         // Author attribution
         val authorView = TextView(this).apply {
             text = "— Author: $author"
-            textSize = 14f
-            setTextColor(Color.parseColor("#666666"))
+            textSize = currentFontSize
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
             gravity = android.view.Gravity.CENTER
             setPadding(0, 0, 0, 30)
         }
@@ -67,7 +71,7 @@ class PrayerReaderActivity : AppCompatActivity() {
         // Sample note about official sources
         val noteView = TextView(this).apply {
             text = "This is a sample prayer structure. For complete official prayers, please visit bahai.org/library or consult authorized Bahá'í publications."
-            textSize = 12f
+            textSize = currentFontSize - 2f
             setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#666666"))
             setBackgroundColor(if (isDarkMode) Color.parseColor("#2C2C2C") else Color.parseColor("#F5F5F5"))
             setPadding(20, 15, 20, 15)
@@ -108,7 +112,7 @@ class PrayerReaderActivity : AppCompatActivity() {
             setBackgroundColor(Color.parseColor("#1565C0"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
-            textSize = 14f
+            textSize = currentFontSize
             setOnClickListener { finish() }
         }
         
@@ -116,23 +120,36 @@ class PrayerReaderActivity : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(0, 0, 1f)
         }
         
+        val settingsButton = Button(this).apply {
+            text = "⚙️"
+            setBackgroundColor(Color.parseColor("#37474F"))
+            setTextColor(Color.WHITE)
+            setPadding(15, 10, 15, 10)
+            textSize = currentFontSize
+            setOnClickListener {
+                startActivity(Intent(this@PrayerReaderActivity, SettingsActivity::class.java))
+            }
+        }
+        
         val modeButton = Button(this).apply {
             text = if (isDarkMode) "☀️" else "🌙"
             setBackgroundColor(Color.parseColor("#FF9800"))
             setTextColor(Color.WHITE)
             setPadding(15, 10, 15, 10)
-            textSize = 14f
+            textSize = currentFontSize
             setOnClickListener { toggleMode() }
         }
         
         topRow.addView(backButton)
         topRow.addView(spacer)
+        topRow.addView(settingsButton)
+        topRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(10, 0) })
         topRow.addView(modeButton)
         
         // Title
         val titleView = TextView(this).apply {
             text = title
-            textSize = 20f
+            textSize = currentFontSize + 6f
             setTextColor(Color.WHITE)
             setPadding(0, 20, 0, 10)
             setTypeface(typeface, Typeface.BOLD)

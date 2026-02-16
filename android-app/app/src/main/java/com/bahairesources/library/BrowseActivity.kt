@@ -5,11 +5,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.widget.*
 import android.graphics.Color
 import androidx.cardview.widget.CardView
+import android.content.Intent
 
 class BrowseActivity : AppCompatActivity() {
     
     private lateinit var categoryLayout: LinearLayout
     private var isDarkMode = false
+    private var currentFontSize = SettingsManager.FONT_MEDIUM
     
     // Document categories with counts
     private val categories = listOf(
@@ -24,8 +26,9 @@ class BrowseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize dark mode
-        isDarkMode = ThemeManager.isDarkMode(this)
+        // Initialize settings
+        isDarkMode = SettingsManager.isDarkMode(this)
+        currentFontSize = SettingsManager.getFontSize(this)
         
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
@@ -42,27 +45,41 @@ class BrowseActivity : AppCompatActivity() {
         
         val backButton = Button(this).apply {
             text = "← Back"
-            setBackgroundColor(Color.parseColor("#1976D2"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
+            textSize = currentFontSize
             setOnClickListener { finish() }
         }
         
         val titleText = TextView(this).apply {
             text = "📚 Browse Documents"
-            textSize = 20f
-            setTextColor(Color.parseColor("#1976D2"))
+            textSize = currentFontSize + 4f
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
             setPadding(30, 15, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        val settingsButton = Button(this).apply {
+            text = "⚙️"
+            textSize = currentFontSize
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#37474F") else Color.parseColor("#E0E0E0"))
+            setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#333333"))
+            setPadding(15, 10, 15, 10)
+            setOnClickListener {
+                startActivity(Intent(this@BrowseActivity, SettingsActivity::class.java))
+            }
         }
         
         headerLayout.addView(backButton)
         headerLayout.addView(titleText)
+        headerLayout.addView(settingsButton)
         
         // Instructions
         val instructionText = TextView(this).apply {
             text = "Browse the Bahá'í Resource Library by category. Tap any category to explore the documents within."
-            textSize = 14f
-            setTextColor(Color.parseColor("#666666"))
+            textSize = currentFontSize
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
             setPadding(10, 0, 10, 20)
         }
         
@@ -192,7 +209,7 @@ class BrowseActivity : AppCompatActivity() {
             else -> emptyList()
         }
         
-        val documentList = documents.joinToString("\\n• ", "• ")
+        val documentList = documents.joinToString("\n• ", "• ")
         
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle(category.name)
