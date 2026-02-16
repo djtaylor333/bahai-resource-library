@@ -10,6 +10,8 @@ import androidx.appcompat.app.AlertDialog
 import android.content.Intent
 import java.util.*
 import java.text.SimpleDateFormat
+import kotlinx.coroutines.*
+import android.util.Log
 
 class CalendarActivity : AppCompatActivity() {
     
@@ -19,6 +21,9 @@ class CalendarActivity : AppCompatActivity() {
     private var currentDate = Calendar.getInstance()
     private var isDarkMode = false
     private var currentFontSize = SettingsManager.FONT_MEDIUM
+    
+    // Coroutine scope for API calls
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var isBahaiCalendarMode = false // New: Calendar mode toggle
     
     private lateinit var locationService: LocationService
@@ -309,19 +314,21 @@ class CalendarActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
         monthYearText.text = dateFormat.format(currentDate.time)
         
-        // Add day headers
+        // Add day headers with better styling
         val daysHeader = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 0, 0, 10)
+            setPadding(8, 8, 8, 16)
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#323232") else Color.parseColor("#F5F5F5"))
         }
         
         val dayNames = arrayOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
         dayNames.forEach { day ->
             val dayView = TextView(this).apply {
                 text = day
-                textSize = 12f
-                setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+                textSize = 13f
+                setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#424242"))
                 gravity = android.view.Gravity.CENTER
+                setPadding(4, 8, 4, 8)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
             }
@@ -329,35 +336,99 @@ class CalendarActivity : AppCompatActivity() {
         }
         calendarLayout.addView(daysHeader)
         
-        // Generate calendar grid
+        // Generate calendar grid with proper logic
         val calendar = Calendar.getInstance()
         calendar.time = currentDate.time
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         
-        val startDay = calendar.get(Calendar.DAY_OF_WEEK) - 1
+        val startDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1 // 0 = Sunday
         val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         
-        var dayCounter = 1
+        // Create calendar grid (6 weeks max)
+        var dayNumber = 1
         
-        // Create weeks
         for (week in 0..5) {
-            if (dayCounter > daysInMonth) break
-            
             val weekRow = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                setPadding(0, 5, 0, 5)
+                setPadding(4, 2, 4, 2)
             }
             
-            // Create days in week
             for (dayOfWeek in 0..6) {
-                val dayView = createGregorianDayView(week, dayOfWeek, startDay, dayCounter, daysInMonth)
-                weekRow.addView(dayView)
+                val dayView = TextView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    gravity = android.view.Gravity.CENTER
+                    setPadding(8, 16, 8, 16)
+                    textSize = 15f
+                    minHeight = 80
+                    
+                    val shouldShowDay = if (week == 0) {
+                        dayOfWeek >= startDayOfWeek && dayNumber <= daysInMonth
+                    } else {
+                        dayNumber <= daysInMonth
+                    }
+                    
+                    if (shouldShowDay) {
+                        text = dayNumber.toString()
+                        
+                        // Create calendar instance for this specific day
+                        val dayCalendar = Calendar.getInstance()
+                        dayCalendar.time = currentDate.time
+                        dayCalendar.set(Calendar.DAY_OF_MONTH, dayNumber)
+                        val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dayCalendar.time)
+                        
+                        // Check for holidays and special days
+                        val enabledHolidays = ReligiousHolidaysData.getAllEnabledHolidays(this@CalendarActivity)
+                        val today = Calendar.getInstance()
+                        val isToday = dayCalendar.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                                     dayCalendar.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+                        
+                        when {
+                            isToday -> {
+                                setTextColor(Color.WHITE)
+                                setBackgroundColor(if (isDarkMode) Color.parseColor("#FF6F00") else Color.parseColor("#FF9800"))
+                                background.alpha = 200
+                            }
+                            holydaysData.containsKey(dateStr) -> {
+                                setTextColor(Color.WHITE)
+                                setBackgroundColor(if (isDarkMode) Color.parseColor("#1565C0") else Color.parseColor("#1976D2"))
+                                background.alpha = 220
+                            }
+                            enabledHolidays.containsKey(dateStr) -> {
+                                setTextColor(Color.WHITE)
+                                setBackgroundColor(if (isDarkMode) Color.parseColor("#388E3C") else Color.parseColor("#4CAF50"))
+                                background.alpha = 200
+                            }
+                            isFastingDay(dateStr) != null -> {
+                                setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#4A148C"))
+                                setBackgroundColor(if (isDarkMode) Color.parseColor("#4A148C") else Color.parseColor("#E1BEE7"))
+                                background.alpha = 180
+                            }
+                            else -> {
+                                setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+                                setBackgroundColor(Color.TRANSPARENT)
+                            }
+                        }
+                        
+                        // Add click listener for day details
+                        isClickable = true
+                        setOnClickListener { showDateDetails(dateStr) }
+                        
+                        dayNumber++
+                    } else {
+                        text = ""
+                        setTextColor(Color.TRANSPARENT)
+                        setBackgroundColor(Color.TRANSPARENT)
+                        isClickable = false
+                    }
+                }
                 
-                if (week == 0 && dayOfWeek >= startDay) dayCounter++
-                else if (week > 0) dayCounter++
+                weekRow.addView(dayView)
             }
             
             calendarLayout.addView(weekRow)
+            
+            // Break if we've displayed all days
+            if (dayNumber > daysInMonth) break
         }
     }
     
@@ -417,57 +488,6 @@ class CalendarActivity : AppCompatActivity() {
             
             calendarLayout.addView(weekRow)
         }
-    }
-    
-    private fun createGregorianDayView(week: Int, dayOfWeek: Int, startDay: Int, dayCounter: Int, daysInMonth: Int): TextView {
-        val dayNum = when {
-            week == 0 && dayOfWeek < startDay -> 0
-            dayCounter > daysInMonth -> 0
-            else -> if (week == 0) dayOfWeek - startDay + 1 else dayCounter - 7 * week + (7 - startDay)
-        }
-        
-        val dayView = TextView(this).apply {
-            text = if (dayNum > 0 && dayNum <= daysInMonth) dayNum.toString() else ""
-            textSize = 14f
-            gravity = android.view.Gravity.CENTER
-            setPadding(8, 12, 8, 12)
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            
-            // Check if this day has a holy day or religious holiday
-            val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
-                Calendar.getInstance().apply {
-                    time = currentDate.time
-                    set(Calendar.DAY_OF_MONTH, if (dayNum > 0 && dayNum <= daysInMonth) dayNum else 1)
-                }.time
-            )
-            
-            val enabledHolidays = ReligiousHolidaysData.getAllEnabledHolidays(this@CalendarActivity)
-            
-            when {
-                holydaysData.containsKey(dateStr) -> {
-                    setTextColor(Color.WHITE)
-                    setBackgroundColor(Color.parseColor("#1976D2")) // Bahá'í holidays in blue
-                }
-                enabledHolidays.containsKey(dateStr) -> {
-                    val holiday = enabledHolidays[dateStr]!!
-                    val religionColors = ReligiousHolidaysData.getReligionColors()
-                    val holidayColor = religionColors[holiday.religion] ?: "#9C27B0"
-                    setTextColor(Color.WHITE)
-                    setBackgroundColor(Color.parseColor(holidayColor))
-                }
-                else -> {
-                    setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
-                    setBackgroundColor(Color.TRANSPARENT)
-                }
-            }
-            
-            // Add click listener to show date details
-            if (dayNum > 0 && dayNum <= daysInMonth) {
-                setOnClickListener { showDateDetails(dateStr) }
-            }
-        }
-        
-        return dayView
     }
     
     private fun createBahaiDayView(dayNum: Int): TextView {
@@ -1248,8 +1268,11 @@ class CalendarActivity : AppCompatActivity() {
             bahaDate.time.contains("Sunset") -> {
                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
                 if (date != null && LocationService.hasLocationPermission(this)) {
-                    val sunTimes = LocationService.getSunTimesForLocation(this, date)
-                    "Sunset ${sunTimes.sunset} (${sunTimes.location})"
+                    // Use enhanced sun times with API integration
+                    loadAccurateSunTimes(date) { detailedSunInfo ->
+                        "Sunset ${detailedSunInfo.sunset} (${detailedSunInfo.location})\nSource: ${detailedSunInfo.source}"
+                    }
+                    "Loading accurate sunset time..." // Placeholder while loading
                 } else {
                     bahaDate.time
                 }
@@ -1257,13 +1280,56 @@ class CalendarActivity : AppCompatActivity() {
             bahaDate.name.contains("Fast") -> {
                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
                 if (date != null && LocationService.hasLocationPermission(this)) {
-                    val sunTimes = LocationService.getSunTimesForLocation(this, date)
-                    "Sunrise: ${sunTimes.sunrise}, Sunset: ${sunTimes.sunset}"
+                    // Use enhanced sun times with API integration
+                    loadAccurateSunTimes(date) { detailedSunInfo ->
+                        "🌅 Sunrise: ${detailedSunInfo.sunrise} | 🌅 Sunset: ${detailedSunInfo.sunset}\n📍 ${detailedSunInfo.location} (${detailedSunInfo.accuracy} accuracy)"
+                    }
+                    "Loading accurate fast times..." // Placeholder while loading
                 } else {
                     "Sunrise to Sunset (location required for exact times)"
                 }
             }
             else -> bahaDate.time
+        }
+    }
+    
+    /**
+     * Load accurate sun times using the new API with coroutines
+     */
+    private fun loadAccurateSunTimes(date: Date, callback: (LocationService.DetailedSunInfo) -> String) {
+        coroutineScope.launch {
+            try {
+                val locationInfo = LocationService.getCurrentLocationInfo(this@CalendarActivity)
+                if (locationInfo != null) {
+                    val detailedSunInfo = LocationService.getAccurateSunTimes(
+                        this@CalendarActivity, 
+                        locationInfo.latitude, 
+                        locationInfo.longitude, 
+                        date
+                    )
+                    
+                    // Update UI with accurate data
+                    runOnUiThread {
+                        updateCalendarDisplay() // Refresh calendar with new data
+                        Toast.makeText(
+                            this@CalendarActivity, 
+                            "✅ Updated with ${detailedSunInfo.accuracy} sun times from ${detailedSunInfo.source}", 
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                } else {
+                    Log.w("CalendarActivity", "No location available for accurate sun times")
+                }
+            } catch (e: Exception) {
+                Log.e("CalendarActivity", "Failed to load accurate sun times", e)
+                runOnUiThread {
+                    Toast.makeText(
+                        this@CalendarActivity, 
+                        "⚠️ Using calculated sun times (network unavailable)", 
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
     
@@ -1329,6 +1395,11 @@ class CalendarActivity : AppCompatActivity() {
         } catch (e: Exception) {
             1
         }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineScope.cancel() // Clean up coroutines
     }
 }
 

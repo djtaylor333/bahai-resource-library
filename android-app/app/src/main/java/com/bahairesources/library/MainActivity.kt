@@ -8,6 +8,10 @@ import android.util.Log
 import android.view.View
 import android.content.Intent
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.button.MaterialButton
+import android.util.TypedValue
 
 class MainActivity : AppCompatActivity() {
     
@@ -26,45 +30,71 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    /**
+     * Helper function to get theme colors using Material Design 3 attributes
+     */
+    private fun getThemeColor(attr: Int): Int {
+        val typedValue = TypedValue()
+        val theme = this.theme
+        theme.resolveAttribute(attr, typedValue, true)
+        return ContextCompat.getColor(this, typedValue.resourceId)
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Refresh theme in case it was changed in settings
+        val currentDarkMode = SettingsManager.isDarkMode(this)
+        if (currentDarkMode != isDarkMode) {
+            isDarkMode = currentDarkMode
+            recreate() // Recreate activity with new theme
+        }
+    }
+    
     private fun createUI() {
         val scrollView = ScrollView(this)
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(30, 50, 30, 50)
-            setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.parseColor("#F8F9FA"))
+            val screenMargin = resources.getDimensionPixelSize(R.dimen.screen_margin_large)
+            setPadding(screenMargin, screenMargin, screenMargin, screenMargin)
+            setBackgroundColor(getThemeColor(android.R.attr.colorBackground))
         }
         
-        // Header Section
-        val headerCard = CardView(this).apply {
-            radius = 16f
-            cardElevation = 4f
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#FFFFFF"))
-            setPadding(20, 20, 20, 20)
+        // Header Section - Using Material Card
+        val headerCard = MaterialCardView(this).apply {
+            radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius_large).toFloat()
+            cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
+            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSurface))
+            val cardPadding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
+            setPadding(cardPadding, cardPadding, cardPadding, cardPadding)
+            useCompatPadding = true
         }
         
         val headerLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(30, 30, 30, 30)
+            val cardPadding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
+            setPadding(cardPadding, cardPadding, cardPadding, cardPadding)
         }
         
         val titleText = TextView(this).apply {
             text = "Bahá'í Resource Library"
-            textSize = 28f
-            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
-            setPadding(0, 0, 0, 10)
+            setTextAppearance(R.style.TextAppearance_App_HeadlineMedium)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorPrimary))
+            val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_sm)
+            setPadding(0, 0, 0, bottomMargin)
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.9.0 - Enhanced Document Management & Fast Calendar!"
-            textSize = SettingsManager.getFontSize(this@MainActivity)
-            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
-            setPadding(0, 0, 0, 20)
+            text = "v0.10.0 - Enhanced UI & Accurate Data Integration!"
+            setTextAppearance(R.style.TextAppearance_App_BodyMedium)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+            val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_lg)
+            setPadding(0, 0, 0, bottomMargin)
         }
         
         val quoteText = TextView(this).apply {
             text = "\"The earth is but one country, and mankind its citizens.\" - Bahá'u'lláh"
-            textSize = 16f
-            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#424242"))
+            setTextAppearance(R.style.TextAppearance_App_Quote)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurface))
             setPadding(0, 0, 0, 0)
         }
         
@@ -73,38 +103,45 @@ class MainActivity : AppCompatActivity() {
         headerLayout.addView(quoteText)
         headerCard.addView(headerLayout)
         
-        // Theme Toggle Section
-        val themeCard = CardView(this).apply {
-            radius = 8f
-            cardElevation = 3f
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#E8F5E8"))
+        // Theme Toggle Section - Using Material Design components
+        val themeCard = MaterialCardView(this).apply {
+            radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
+            cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
+            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSecondaryContainer))
+            isClickable = true
+            isFocusable = true
+            foreground = ContextCompat.getDrawable(this@MainActivity, android.R.drawable.button_onoff_indicator_on)
+            useCompatPadding = true
         }
         
         val themeLayout = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(20, 15, 20, 15)
+            val padding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
+            setPadding(padding, padding, padding, padding)
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
         
         val themeIcon = TextView(this).apply {
             text = if (isDarkMode) "🌙" else "☀️"
-            textSize = 20f
-            setPadding(0, 0, 15, 0)
+            setTextAppearance(R.style.TextAppearance_App_TitleMedium)
+            val iconMargin = resources.getDimensionPixelSize(R.dimen.spacing_md)
+            setPadding(0, 0, iconMargin, 0)
         }
         
         val themeText = TextView(this).apply {
-            text = if (isDarkMode) "Dark Mode" else "Light Mode"
-            textSize = 16f
-            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#2E7D32"))
+            text = if (isDarkMode) "Dark Mode Active" else "Light Mode Active"
+            setTextAppearance(R.style.TextAppearance_App_BodyLarge)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSecondaryContainer))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
-        val toggleButton = Button(this).apply {
-            text = "🎨 Theme"
-            textSize = SettingsManager.getFontSize(this@MainActivity) - 2f
-            setBackgroundColor(if (isDarkMode) Color.parseColor("#4CAF50") else Color.parseColor("#2E7D32"))
-            setTextColor(Color.WHITE)
-            setPadding(20, 10, 20, 10)
+        val toggleButton = MaterialButton(this).apply {
+            text = "⚙️ Settings"
+            setTextAppearance(R.style.TextAppearance_App_LabelLarge)
+            cornerRadius = resources.getDimensionPixelSize(R.dimen.button_corner_radius)
+            val buttonPadding = resources.getDimensionPixelSize(R.dimen.button_padding_horizontal)
+            setPadding(buttonPadding, 0, buttonPadding, 0)
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.min_touch_target)
             setOnClickListener {
                 val intent = Intent(this@MainActivity, SettingsActivity::class.java)
                 startActivity(intent)
@@ -149,8 +186,8 @@ class MainActivity : AppCompatActivity() {
         
         // Navigation Section
         val navigationCard = CardView(this).apply {
-            radius = 8f
-            cardElevation = 3f
+            radius = 12f
+            cardElevation = if (isDarkMode) 6f else 4f
             setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#FFF3E0"))
         }
         
@@ -227,28 +264,29 @@ class MainActivity : AppCompatActivity() {
             "#5D4037"
         ) { showAboutInterface() }
         
+        // Assemble the layout with proper Material Design spacing
         layout.addView(headerCard)
-        layout.addView(createSpacing(15))
         layout.addView(themeCard)
-        layout.addView(createSpacing(15))
-        layout.addView(navigationCard)
-        layout.addView(createSpacing(20))
+        
+        // Feature cards with consistent spacing (handled by card margins)
         layout.addView(searchCard)
-        layout.addView(createSpacing(15))
         layout.addView(browseCard)
-        layout.addView(createSpacing(15))
         layout.addView(readingCard)
-        layout.addView(createSpacing(15))
         layout.addView(bookmarksCard)
-        layout.addView(createSpacing(15))
         layout.addView(feastCard)
-        layout.addView(createSpacing(15))
         layout.addView(linksCard)
-        layout.addView(createSpacing(15))
         layout.addView(settingsCard)
-        layout.addView(createSpacing(15))
         layout.addView(aboutCard)
-        layout.addView(createSpacing(20))
+        
+        // Stats card with extra top margin
+        val statsMarginParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            val extraMargin = resources.getDimensionPixelSize(R.dimen.spacing_xl)
+            setMargins(0, extraMargin, 0, 0)
+        }
+        statsCard.layoutParams = statsMarginParams
         layout.addView(statsCard)
         
         scrollView.addView(layout)
@@ -266,41 +304,63 @@ class MainActivity : AppCompatActivity() {
         setContentView(layout)
     }
     
-    private fun createFeatureCard(title: String, description: String, color: String, onClick: () -> Unit): CardView {
-        val card = CardView(this).apply {
-            radius = 12f
-            cardElevation = 6f
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1E1E1E") else Color.parseColor("#FFFFFF"))
+    private fun createFeatureCard(title: String, description: String, color: String, onClick: () -> Unit): MaterialCardView {
+        val card = MaterialCardView(this).apply {
+            radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
+            cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
+            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSurface))
             isClickable = true
             isFocusable = true
+            useCompatPadding = true
+            // Add ripple effect
+            foreground = ContextCompat.getDrawable(this@MainActivity, android.R.drawable.btn_default)
+            // Set proper margins
+            val marginParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                val marginVertical = resources.getDimensionPixelSize(R.dimen.card_margin_vertical)
+                setMargins(0, marginVertical, 0, marginVertical)
+            }
+            layoutParams = marginParams
         }
         
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(25, 25, 25, 25)
+            val padding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
+            setPadding(padding, padding, padding, padding)
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            minimumHeight = resources.getDimensionPixelSize(R.dimen.list_item_height_two_line)
         }
         
+        // Color indicator bar - more subtle and modern
         val colorBar = View(this).apply {
             setBackgroundColor(Color.parseColor(color))
-            layoutParams = LinearLayout.LayoutParams(8, LinearLayout.LayoutParams.MATCH_PARENT)
+            val barWidth = resources.getDimensionPixelSize(R.dimen.spacing_xs)
+            layoutParams = LinearLayout.LayoutParams(barWidth, LinearLayout.LayoutParams.MATCH_PARENT).apply {
+                val barMarginEnd = resources.getDimensionPixelSize(R.dimen.spacing_md)
+                setMargins(0, 0, barMarginEnd, 0)
+            }
         }
         
         val textLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(20, 0, 0, 0)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
         val titleView = TextView(this).apply {
             text = title
-            textSize = 18f
-            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#212121"))
-            setPadding(0, 0, 0, 8)
+            setTextAppearance(R.style.TextAppearance_App_TitleMedium)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurface))
+            val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
+            setPadding(0, 0, 0, bottomMargin)
         }
         
         val descView = TextView(this).apply {
             text = description
-            textSize = 14f
-            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
+            setTextAppearance(R.style.TextAppearance_App_BodyMedium)
+            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+            maxLines = 2
         }
         
         textLayout.addView(titleView)
@@ -309,7 +369,12 @@ class MainActivity : AppCompatActivity() {
         layout.addView(textLayout)
         card.addView(layout)
         
-        card.setOnClickListener { onClick() }
+        card.setOnClickListener { 
+            // Add haptic feedback for better user experience
+            card.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
+            onClick() 
+        }
+        
         return card
     }
     

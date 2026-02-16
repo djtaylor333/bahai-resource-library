@@ -13,6 +13,14 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.util.*
 import kotlin.math.*
+import android.util.Log
+import kotlinx.coroutines.*
+import org.json.JSONObject
+import java.net.URL
+import java.net.HttpURLConnection
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.text.SimpleDateFormat
 
 object LocationService {
     private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
@@ -35,6 +43,237 @@ object LocationService {
         val longitude: Double,
         val isManual: Boolean = false
     )
+    
+    // Enhanced data class for detailed sunrise/sunset information
+    data class DetailedSunInfo(
+        val sunrise: String,
+        val sunset: String, 
+        val civilTwilight: String,
+        val nauticalTwilight: String,
+        val astronomicalTwilight: String,
+        val dayLength: String,
+        val solarNoon: String,
+        val location: String,
+        val accuracy: String,
+        val source: String
+    )
+    
+    private const val TAG = "LocationService"
+    
+    /**
+     * Get accurate sunrise/sunset times using sunrise-sunset.org API
+     * Falls back to enhanced calculation if API is unavailable
+     */
+    suspend fun getAccurateSunTimes(context: Context, latitude: Double, longitude: Double, date: Date = Date()): DetailedSunInfo {
+        return withContext(Dispatchers.IO) {
+            try {
+                // Format date for API (YYYY-MM-DD)
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+                val dateString = dateFormat.format(date)
+                
+                // Build API URL for sunrise-sunset.org (free, no API key required)
+                val apiUrl = "https://api.sunrise-sunset.org/json?lat=$latitude&lng=$longitude&date=$dateString&formatted=0"
+                
+                Log.d(TAG, "Fetching sun data from: $apiUrl")
+                
+                val url = URL(apiUrl)
+                val connection = url.openConnection() as HttpURLConnection
+                connection.requestMethod = "GET"
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+                connection.setRequestProperty("User-Agent", "BahaiResourceLibrary/0.10.0")
+                
+                val responseCode = connection.responseCode
+                if (responseCode == 200) {
+                    val reader = BufferedReader(InputStreamReader(connection.inputStream))
+                    val response = reader.readText()
+                    reader.close()
+                    
+                    val json = JSONObject(response)
+                    if (json.getString("status") == "OK") {
+                        val results = json.getJSONObject("results")
+                        
+                        val locationName = getCityNameFromCoordinates(context, latitude, longitude)
+                        
+                        DetailedSunInfo(
+                            sunrise = formatApiTime(results.getString("sunrise")),
+                            sunset = formatApiTime(results.getString("sunset")),
+                            civilTwilight = formatApiTime(results.getString("civil_twilight_begin")),
+                            nauticalTwilight = formatApiTime(results.getString("nautical_twilight_begin")), 
+                            astronomicalTwilight = formatApiTime(results.getString("astronomical_twilight_begin")),
+                            dayLength = formatDayLength(results.getString("day_length")),
+                            solarNoon = formatApiTime(results.getString("solar_noon")),
+                            location = locationName,
+                            accuracy = "high",
+                            source = "sunrise-sunset.org API"
+                        )
+                    } else {
+                        throw Exception("API returned error status: ${json.getString("status")}")
+                    }
+                } else {
+                    throw Exception("HTTP error: $responseCode")
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to get data from API, falling back to calculation: ${e.message}")
+                // Fallback to enhanced calculation
+                getCalculatedSunTimes(context, latitude, longitude, date)
+            }
+        }
+    }
+    
+    /**
+     * Enhanced astronomical calculation for sunrise/sunset times
+     * More accurate than the previous simple calculation
+     */
+    private fun getCalculatedSunTimes(context: Context, latitude: Double, longitude: Double, date: Date): DetailedSunInfo {
+        val calendar = Calendar.getInstance()
+        calendar.time = date
+        val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
+        
+        // More accurate sun position calculation using astronomical formulae
+        val P = asin(0.39795 * cos(0.98563 * (dayOfYear - 173) * Math.PI / 180))
+        val argument = -tan(latitude * Math.PI / 180) * tan(P)
+        
+        // Check for polar day/night
+        if (argument < -1 || argument > 1) {
+            val locationName = getCityNameFromCoordinates(context, latitude, longitude)
+            return if (argument < -1) {
+                // Polar day (sun never sets)
+                DetailedSunInfo(
+                    sunrise = "00:00",
+                    sunset = "23:59", 
+                    civilTwilight = "00:00",
+                    nauticalTwilight = "00:00",
+                    astronomicalTwilight = "00:00",
+                    dayLength = "24:00",
+                    solarNoon = "12:00",
+                    location = locationName,
+                    accuracy = "calculated",
+                    source = "astronomical calculation"
+                )
+            } else {
+                // Polar night (sun never rises)
+                DetailedSunInfo(
+                    sunrise = "--:--",
+                    sunset = "--:--",
+                    civilTwilight = "--:--", 
+                    nauticalTwilight = "--:--",
+                    astronomicalTwilight = "--:--",
+                    dayLength = "00:00",
+                    solarNoon = "--:--",
+                    location = locationName,
+                    accuracy = "calculated",
+                    source = "astronomical calculation"
+                )
+            }
+        }
+        
+        val hourAngle = acos(argument) * 180 / Math.PI
+        val timeCorrection = 4 * (longitude - 15 * getTimeZoneOffset(date)) + getEquationOfTime(dayOfYear)
+        
+        val sunriseDecimal = 12 - (hourAngle + timeCorrection) / 60
+        val sunsetDecimal = 12 + (hourAngle - timeCorrection) / 60
+        val solarNoonDecimal = 12 - timeCorrection / 60
+        
+        // Calculate twilight times  
+        val civilTwilight = sunriseDecimal - 0.5 // Approximate 30 minutes before sunrise
+        val nauticalTwilight = sunriseDecimal - 1.0 // Approximate 1 hour before sunrise
+        val astronomicalTwilight = sunriseDecimal - 1.5 // Approximate 1.5 hours before sunrise
+        
+        val dayLengthHours = sunsetDecimal - sunriseDecimal
+        
+        val locationName = getCityNameFromCoordinates(context, latitude, longitude)
+        
+        return DetailedSunInfo(
+            sunrise = formatDecimalTime(sunriseDecimal),
+            sunset = formatDecimalTime(sunsetDecimal),
+            civilTwilight = formatDecimalTime(civilTwilight),
+            nauticalTwilight = formatDecimalTime(nauticalTwilight),
+            astronomicalTwilight = formatDecimalTime(astronomicalTwilight),
+            dayLength = formatDayLengthFromHours(dayLengthHours),
+            solarNoon = formatDecimalTime(solarNoonDecimal),
+            location = locationName,
+            accuracy = "calculated",
+            source = "enhanced astronomical calculation"
+        )
+    }
+    
+    /**
+     * Get equation of time correction for more accurate sun calculations
+     */
+    private fun getEquationOfTime(dayOfYear: Int): Double {
+        val B = 2 * Math.PI * (dayOfYear - 81) / 365
+        return 9.87 * sin(2 * B) - 7.53 * cos(B) - 1.5 * sin(B)
+    }
+    
+    /**
+     * Get timezone offset in hours
+     */
+    private fun getTimeZoneOffset(date: Date): Int {
+        val timeZone = TimeZone.getDefault()
+        return timeZone.getOffset(date.time) / (1000 * 60 * 60)
+    }
+    
+    /**
+     * Format API time from ISO 8601 to local time format
+     */
+    private fun formatApiTime(isoTime: String): String {
+        return try {
+            val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+00:00", Locale.US)
+            isoFormat.timeZone = TimeZone.getTimeZone("UTC")
+            val utcTime = isoFormat.parse(isoTime)
+            
+            val localFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            localFormat.timeZone = TimeZone.getDefault()
+            localFormat.format(utcTime!!)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to parse API time: $isoTime", e)
+            "??:??"
+        }
+    }
+    
+    /**
+     * Format day length from API format (HH:MM:SS) to readable format
+     */
+    private fun formatDayLength(apiDayLength: String): String {
+        return try {
+            val parts = apiDayLength.split(":")
+            val hours = parts[0].toInt()
+            val minutes = parts[1].toInt()
+            "${hours}h ${minutes}m"
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to parse day length: $apiDayLength", e)
+            "??h ??m"
+        }
+    }
+    
+    /**
+     * Format decimal hours to HH:MM format
+     */
+    private fun formatDecimalTime(decimal: Double): String {
+        return try {
+            val hours = decimal.toInt()
+            val minutes = ((decimal - hours) * 60).toInt()
+            val adjustedHours = if (hours < 0) hours + 24 else if (hours >= 24) hours - 24 else hours
+            "%02d:%02d".format(adjustedHours, minutes)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to format decimal time: $decimal", e)
+            "??:??"
+        }
+    }
+    
+    /**
+     * Format day length from decimal hours to readable format
+     */
+    private fun formatDayLengthFromHours(hours: Double): String {
+        return try {
+            val wholeHours = hours.toInt()
+            val minutes = ((hours - wholeHours) * 60).toInt()
+            "${wholeHours}h ${minutes}m"
+        } catch (e: Exception) {
+            "??h ??m"
+        }
+    }
     
     fun hasLocationPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -76,6 +315,9 @@ object LocationService {
         }
     }
     
+    /**
+     * Get comprehensive location information combining GPS and manual location settings
+     */
     fun getCityNameFromCoordinates(context: Context, latitude: Double, longitude: Double): String {
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())
