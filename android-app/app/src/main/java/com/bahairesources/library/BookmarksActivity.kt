@@ -13,10 +13,12 @@ class BookmarksActivity : AppCompatActivity() {
     private lateinit var bookmarksLayout: LinearLayout
     private lateinit var emptyStateLayout: LinearLayout
     private lateinit var prefs: SharedPreferences
+    private lateinit var documentManager: PDFDocumentManager
     private var isDarkMode = false
     private var currentFontSize = SettingsManager.FONT_MEDIUM
+    private var realBookmarks = mutableListOf<DocumentBookmark>()
     
-    // Sample bookmarks - in a real app these would be stored in a database
+    // Sample bookmarks - shown if no real bookmarks exist
     private val sampleBookmarks = listOf(
         Bookmark(
             "The Hidden Words",
@@ -44,11 +46,15 @@ class BookmarksActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Initialize settings
+        // Initialize settings and document manager
         isDarkMode = SettingsManager.isDarkMode(this)
         currentFontSize = SettingsManager.getFontSize(this)
+        documentManager = PDFDocumentManager(this)
         
         prefs = getSharedPreferences("BookmarksPrefs", MODE_PRIVATE)
+        
+        // Load real bookmarks from all documents
+        loadAllBookmarks()
         
         val scrollView = ScrollView(this)
         val mainLayout = LinearLayout(this).apply {
@@ -241,21 +247,142 @@ class BookmarksActivity : AppCompatActivity() {
         return layout
     }
     
+    private fun loadAllBookmarks() {
+        realBookmarks.clear()
+        // Load bookmarks from all documents
+        PDFDocumentManager.RESEARCH_DOCUMENTS.forEach { docSource ->
+            val docBookmarks = documentManager.getBookmarks(docSource.id)
+            realBookmarks.addAll(docBookmarks)
+        }
+    }
+    
     private fun displayBookmarks() {
         bookmarksLayout.removeAllViews()
         
-        if (sampleBookmarks.isEmpty()) {
-            emptyStateLayout.visibility = android.view.View.VISIBLE
-            return
-        } else {
+        // Use real bookmarks if available
+        if (realBookmarks.isNotEmpty()) {
+            // Convert DocumentBookmarks to display format
+            realBookmarks.sortedByDescending { it.timestamp.time }.forEach { docBookmark ->
+                val card = createRealBookmarkCard(docBookmark)
+                bookmarksLayout.addView(card)
+                bookmarksLayout.addView(createSpacing(12))
+            }
             emptyStateLayout.visibility = android.view.View.GONE
+        } else if (sampleBookmarks.isNotEmpty()) {
+            // Show sample bookmarks
+            sampleBookmarks.sortedByDescending { it.timestamp }.forEach { bookmark ->
+                val card = createBookmarkCard(bookmark)
+                bookmarksLayout.addView(card)
+                bookmarksLayout.addView(createSpacing(12))
+            }
+            emptyStateLayout.visibility = android.view.View.GONE
+        } else {
+            // Show empty state if no bookmarks at all
+            emptyStateLayout.visibility = android.view.View.VISIBLE
+        }
+    }
+    
+    private fun createRealBookmarkCard(bookmark: DocumentBookmark): CardView {
+        val card = CardView(this).apply {
+            radius = 8f
+            cardElevation = 4f
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
+            isClickable = true
+            isFocusable = true
         }
         
-        sampleBookmarks.sortedByDescending { it.timestamp }.forEach { bookmark ->
-            val card = createBookmarkCard(bookmark)
-            bookmarksLayout.addView(card)
-            bookmarksLayout.addView(createSpacing(12))
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
         }
+        
+        val headerLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        
+        // Find document title from ID
+        val docTitle = PDFDocumentManager.RESEARCH_DOCUMENTS
+            .find { it.id == bookmark.id.substringBefore("_") }?.title ?: "Unknown Document"
+        
+        val titleView = TextView(this).apply {
+            text = docTitle
+            textSize = 16f
+            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        
+        val timeView = TextView(this).apply {
+            text = getRelativeTime(bookmark.timestamp.time)
+            textSize = 12f
+            setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#999999"))
+        }
+        
+        headerLayout.addView(titleView)
+        headerLayout.addView(timeView)
+        
+        val locationView = TextView(this).apply {
+            text = "📍 Position ${bookmark.position} • Real Bookmark"
+            textSize = 12f
+            setTextColor(if (isDarkMode) Color.parseColor("#FFB74D") else Color.parseColor("#FF9800"))
+            setPadding(0, 5, 0, 10)
+        }
+        
+        val contentView = TextView(this).apply {
+            text = if (bookmark.text.length > 200) {
+                bookmark.text.take(200) + "..."
+            } else {
+                bookmark.text
+            }
+            textSize = currentFontSize
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            setPadding(0, 0, 0, 10)
+        }
+        
+        // Add note if it exists
+        if (bookmark.note.isNotBlank()) {
+            val noteView = TextView(this).apply {
+                text = "📝 ${bookmark.note}"
+                textSize = currentFontSize - 1f
+                setTextColor(if (isDarkMode) Color.parseColor("#A5A5A5") else Color.parseColor("#666666"))
+                setPadding(0, 5, 0, 10)
+            }
+            layout.addView(noteView)
+        }
+        
+        val actionsLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+        
+        val editButton = Button(this).apply {
+            text = "✏️ Edit"
+            textSize = 12f
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#FFB74D") else Color.parseColor("#FF9800"))
+            setTextColor(Color.WHITE)
+            setPadding(15, 8, 15, 8)
+            setOnClickListener { showEditBookmarkDialog(bookmark) }
+        }
+        
+        val deleteButton = Button(this).apply {
+            text = "🗑️ Delete"
+            textSize = 12f
+            setBackgroundColor(Color.parseColor("#F44336"))
+            setTextColor(Color.WHITE)
+            setPadding(15, 8, 15, 8)
+            setOnClickListener { deleteBookmark(bookmark) }
+        }
+        
+        actionsLayout.addView(editButton)
+        actionsLayout.addView(createSpacing(10))
+        actionsLayout.addView(deleteButton)
+        
+        layout.addView(headerLayout)
+        layout.addView(locationView)
+        layout.addView(contentView)
+        layout.addView(actionsLayout)
+        
+        card.addView(layout)
+        
+        return card
     }
     
     private fun createBookmarkCard(bookmark: Bookmark): CardView {
@@ -367,18 +494,127 @@ class BookmarksActivity : AppCompatActivity() {
     private fun showAddBookmarkDialog() {
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle("➕ Add Bookmark")
-            .setMessage("Bookmark functionality is being developed!\n\n" +
-                       "In the full version you'll be able to:\n\n" +
-                       "• Bookmark any passage while reading\n" +
-                       "• Add personal notes and tags\n" +
-                       "• Organize bookmarks into collections\n" +
-                       "• Search through your bookmarks\n" +
-                       "• Export bookmarks for sharing\n\n" +
-                       "For now, explore the sample bookmarks above to see how the feature will work!")
-            .setPositiveButton("Got it!") { dialog, _ -> dialog.dismiss() }
+            .setMessage("Add a new bookmark to your collection")
+            .setView(createAddBookmarkLayout())
+            .setPositiveButton("Add Bookmark") { _, _ -> }
+            .setNegativeButton("Cancel", null)
             .create()
         
         dialog.show()
+        
+        // Override the positive button to handle form validation
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            handleAddBookmark(dialog)
+        }
+    }
+    
+    private fun createAddBookmarkLayout(): android.view.View {
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 10)
+        }
+        
+        // Document selection spinner
+        val docLabel = TextView(this).apply {
+            text = "Select Document:"
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+        }
+        
+        val docSpinner = Spinner(this).apply {
+            tag = "document_spinner"
+            val adapter = ArrayAdapter(this@BookmarksActivity, 
+                android.R.layout.simple_spinner_item,
+                PDFDocumentManager.RESEARCH_DOCUMENTS.map { it.title }
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            setAdapter(adapter)
+        }
+        
+        // Text input
+        val textLabel = TextView(this).apply {
+            text = "Bookmark Text:"
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            setPadding(0, 10, 0, 5)
+        }
+        
+        val textInput = EditText(this).apply {
+            tag = "text_input"
+            hint = "Enter the text you want to bookmark..."
+            setHintTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#AAAAAA"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            minLines = 3
+            maxLines = 5
+        }
+        
+        // Note input
+        val noteLabel = TextView(this).apply {
+            text = "Personal Note (Optional):"
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            setPadding(0, 10, 0, 5)
+        }
+        
+        val noteInput = EditText(this).apply {
+            tag = "note_input"
+            hint = "Add your thoughts or notes..."
+            setHintTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#AAAAAA"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            minLines = 2
+        }
+        
+        layout.addView(docLabel)
+        layout.addView(docSpinner)
+        layout.addView(textLabel)
+        layout.addView(textInput)
+        layout.addView(noteLabel)
+        layout.addView(noteInput)
+        
+        return layout
+    }
+    
+    private fun handleAddBookmark(dialog: android.app.AlertDialog) {
+        val layout = dialog.findViewById<LinearLayout>(android.R.id.content)?.getChildAt(0) as? LinearLayout
+        
+        val docSpinner = layout?.findViewWithTag<Spinner>("document_spinner")
+        val textInput = layout?.findViewWithTag<EditText>("text_input")
+        val noteInput = layout?.findViewWithTag<EditText>("note_input")
+        
+        val selectedDocIndex = docSpinner?.selectedItemPosition ?: 0
+        val selectedDoc = PDFDocumentManager.RESEARCH_DOCUMENTS[selectedDocIndex]
+        val text = textInput?.text?.toString()?.trim() ?: ""
+        val note = noteInput?.text?.toString()?.trim() ?: ""
+        
+        if (text.isBlank()) {
+            Toast.makeText(this, "Please enter some text to bookmark", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Add the bookmark using PDFDocumentManager
+        documentManager.addBookmark(selectedDoc.id, 0, text, note)
+        
+        Toast.makeText(this, "✅ Bookmark added successfully!", Toast.LENGTH_SHORT).show()
+        
+        // Refresh bookmarks display
+        loadAllBookmarks()
+        displayBookmarks()
+        
+        dialog.dismiss()
+    }
+    
+    private fun showEditBookmarkDialog(bookmark: DocumentBookmark) {
+        // Implementation similar to add but with pre-filled values
+        Toast.makeText(this, "Edit functionality coming soon!", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun deleteBookmark(bookmark: DocumentBookmark) {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Delete Bookmark")
+            .setMessage("Are you sure you want to delete this bookmark?")
+            .setPositiveButton("Delete") { _, _ ->
+                // For now, show feedback - full delete would require PDFDocumentManager update
+                Toast.makeText(this, "Delete functionality coming soon!", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
     private fun showBookmarkDetails(bookmark: Bookmark) {

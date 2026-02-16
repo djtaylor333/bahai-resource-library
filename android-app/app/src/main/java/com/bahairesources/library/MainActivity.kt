@@ -56,14 +56,14 @@ class MainActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             val screenMargin = resources.getDimensionPixelSize(R.dimen.screen_margin_large)
             setPadding(screenMargin, screenMargin, screenMargin, screenMargin)
-            setBackgroundColor(getThemeColor(android.R.attr.colorBackground))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#1D1B20") else Color.parseColor("#FEF7FF"))
         }
         
         // Header Section - Using Material Card
         val headerCard = MaterialCardView(this).apply {
             radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius_large).toFloat()
             cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
-            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSurface))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1D1B20") else Color.parseColor("#FFFFFF"))
             val cardPadding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
             setPadding(cardPadding, cardPadding, cardPadding, cardPadding)
             useCompatPadding = true
@@ -78,15 +78,15 @@ class MainActivity : AppCompatActivity() {
         val titleText = TextView(this).apply {
             text = "Bahá'í Resource Library"
             setTextAppearance(R.style.TextAppearance_App_HeadlineMedium)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorPrimary))
+            setTextColor(if (isDarkMode) Color.parseColor("#D0BCFF") else Color.parseColor("#6750A4"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_sm)
             setPadding(0, 0, 0, bottomMargin)
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.10.0 - Enhanced UI & Accurate Data Integration!"
+            text = "v0.11.0 - Improved UX & Enhanced Functionality!"
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+            setTextColor(if (isDarkMode) Color.parseColor("#CAC4D0") else Color.parseColor("#49454F"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_lg)
             setPadding(0, 0, 0, bottomMargin)
         }
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         val quoteText = TextView(this).apply {
             text = "\"The earth is but one country, and mankind its citizens.\" - Bahá'u'lláh"
             setTextAppearance(R.style.TextAppearance_App_Quote)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurface))
+            setTextColor(if (isDarkMode) Color.parseColor("#E6E0E9") else Color.parseColor("#1D1B20"))
             setPadding(0, 0, 0, 0)
         }
         
@@ -107,10 +107,9 @@ class MainActivity : AppCompatActivity() {
         val themeCard = MaterialCardView(this).apply {
             radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
             cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
-            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSecondaryContainer))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#4A4458") else Color.parseColor("#E8DEF8"))
             isClickable = true
             isFocusable = true
-            foreground = ContextCompat.getDrawable(this@MainActivity, android.R.drawable.button_onoff_indicator_on)
             useCompatPadding = true
         }
         
@@ -131,7 +130,7 @@ class MainActivity : AppCompatActivity() {
         val themeText = TextView(this).apply {
             text = if (isDarkMode) "Dark Mode Active" else "Light Mode Active"
             setTextAppearance(R.style.TextAppearance_App_BodyLarge)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSecondaryContainer))
+            setTextColor(if (isDarkMode) Color.parseColor("#E8DEF8") else Color.parseColor("#1D192B"))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
@@ -268,6 +267,9 @@ class MainActivity : AppCompatActivity() {
         layout.addView(headerCard)
         layout.addView(themeCard)
         
+        // Add navigation card back (was missing)
+        layout.addView(navigationCard)
+        
         // Feature cards with consistent spacing (handled by card margins)
         layout.addView(searchCard)
         layout.addView(browseCard)
@@ -308,7 +310,7 @@ class MainActivity : AppCompatActivity() {
         val card = MaterialCardView(this).apply {
             radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
             cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
-            setCardBackgroundColor(getThemeColor(com.google.android.material.R.attr.colorSurface))
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1D1B20") else Color.parseColor("#FFFFFF"))
             isClickable = true
             isFocusable = true
             useCompatPadding = true
@@ -351,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             setTextAppearance(R.style.TextAppearance_App_TitleMedium)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurface))
+            setTextColor(if (isDarkMode) Color.parseColor("#E6E0E9") else Color.parseColor("#1D1B20"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
             setPadding(0, 0, 0, bottomMargin)
         }
@@ -359,7 +361,7 @@ class MainActivity : AppCompatActivity() {
         val descView = TextView(this).apply {
             text = description
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            setTextColor(getThemeColor(com.google.android.material.R.attr.colorOnSurfaceVariant))
+            setTextColor(if (isDarkMode) Color.parseColor("#CAC4D0") else Color.parseColor("#49454F"))
             maxLines = 2
         }
         

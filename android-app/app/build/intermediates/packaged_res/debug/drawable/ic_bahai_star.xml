@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    
+    <!-- 9-pointed Bahá'í star - mathematically precise -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M50,5 L58,33 L85,15 L67,38 L95,35 L72,53 L92,75 L65,62 L62,92 L50,67 L38,92 L35,62 L8,75 L28,53 L5,35 L33,38 L15,15 L42,33 Z" />
+    
+    <!-- Inner circle for balance -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,42 A8,8 0 1,1 50,58 A8,8 0 1,1 50,42 Z" />
+        
+    <!-- Small center dot -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M50,47 A3,3 0 1,1 50,53 A3,3 0 1,1 50,47 Z" />
+</vector>
