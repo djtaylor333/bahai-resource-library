@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.bahairesources.library"
-    android:versionCode="5"
-    android:versionName="0.3.2" >
+    android:versionCode="10"
+    android:versionName="0.7.0" >
 
     <uses-sdk
-        android:minSdkVersion="24"
-        android:targetSdkVersion="35" />
+        android:minSdkVersion="21"
+        android:targetSdkVersion="34" />
 
     <!-- Basic permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Location permissions for sunrise/sunset calculations -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <permission
         android:name="com.bahairesources.library.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -22,7 +26,7 @@
         android:name="com.bahairesources.library.BahaiResourceApplication"
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-        android:extractNativeLibs="false"
+        android:extractNativeLibs="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -37,6 +41,72 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <!-- Search Activity -->
+        <activity
+            android:name="com.bahairesources.library.SearchActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Browse Activity -->
+        <activity
+            android:name="com.bahairesources.library.BrowseActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Bookmarks Activity -->
+        <activity
+            android:name="com.bahairesources.library.BookmarksActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Prayers Activity -->
+        <activity
+            android:name="com.bahairesources.library.PrayersActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Prayer Reader Activity -->
+        <activity
+            android:name="com.bahairesources.library.PrayerReaderActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Calendar Activity -->
+        <activity
+            android:name="com.bahairesources.library.CalendarActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Document Reader Activity -->
+        <activity
+            android:name="com.bahairesources.library.DocumentReaderActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Settings Activity -->
+        <activity
+            android:name="com.bahairesources.library.SettingsActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Links Activity -->
+        <activity
+            android:name="com.bahairesources.library.LinksActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- Feast Resources Activity -->
+        <activity
+            android:name="com.bahairesources.library.FeastResourcesActivity"
+            android:exported="false" >
+        </activity>
+
+        <!-- About Activity -->
+        <activity
+            android:name="com.bahairesources.library.AboutActivity"
+            android:exported="false" >
         </activity>
 
         <provider

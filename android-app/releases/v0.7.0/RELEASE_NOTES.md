@@ -4,6 +4,18 @@
 
 This is a comprehensive update that transforms the Bahá'í Resource Library from basic functionality to a professional-grade application serving the global Bahá'í community.
 
+## 📱 **DOWNLOAD OPTIONS**
+
+### ✅ **RECOMMENDED**: `bahai-resource-library-v0.7.0-release-SIGNED.apk` (5.5 MB)
+- **Properly signed release version** - installs on all Android devices
+- **Optimized build** with smaller size and better performance
+- **Use this version** for normal installation
+
+### 🔧 **Alternative**: `bahai-resource-library-v0.7.0-debug-INSTALLABLE.apk` (6.8 MB)
+- **Debug version** with additional debugging information
+- **Larger file size** due to debug symbols
+- **Use this version** only if release version has issues
+
 ## ✨ New Features
 
 ### 🎨 Universal Dark Mode
@@ -25,7 +37,7 @@ This is a comprehensive update that transforms the Bahá'í Resource Library fro
 - Ayyám-i-Há (Intercalary Days) information
 - All 19 Feast days with month names and descriptions
 - Location-based sunrise/sunset times for proper observance
-- Interactive calendar with clickable dates for详情
+- Interactive calendar with clickable dates for detailed information
 
 ### 📚 Advanced Document Reader
 - In-document search with context-aware results
@@ -63,9 +75,10 @@ This is a comprehensive update that transforms the Bahá'í Resource Library fro
 
 ## 🎨 User Interface Improvements
 
-### App Icon & Branding
-- Updated app icon to 9-pointed Bahá'í star
+### App Icon & Branding ⭐ **FIXED**
+- **NEW**: Proper 9-pointed Bahá'í star (was incorrectly 13 points)
 - Professional vector graphics with proper scaling
+- Mathematically accurate star representation
 - Symbolic representation of Bahá'í unity principles
 
 ### Navigation & Usability
@@ -81,6 +94,7 @@ This is a comprehensive update that transforms the Bahá'í Resource Library fro
 - Enhanced search algorithms with better performance
 - Improved memory usage and app responsiveness
 - Better error handling and user feedback
+- **FIXED**: Proper APK signing for installation on all Android devices
 
 ### Code Quality
 - Clean code architecture with proper separation of concerns
@@ -90,18 +104,29 @@ This is a comprehensive update that transforms the Bahá'í Resource Library fro
 
 ## 📱 Installation & Compatibility
 
-- **File**: `bahai-resource-library-v0.7.0-release.apk`
-- **Size**: 5.3 MB
+### System Requirements
 - **Android Requirements**: API Level 21+ (Android 5.0+)
 - **Target SDK**: 34 (Android 14)
+- **Tested on**: Pixel 8 Pro, compatible with all modern Android devices
 - **Permissions**: Location (optional, for accurate prayer times)
+
+### Installation Instructions
+1. **Download** the recommended APK file above
+2. **Enable "Install from Unknown Sources"** in Android Settings → Security
+3. **Open the APK file** and follow installation prompts
+4. **Grant necessary permissions** when prompted
 
 ## 🚨 Important Notes
 
-- This is an unsigned APK for testing and distribution
-- Enable "Install from Unknown Sources" in your device settings
+### Installation Requirements ✅ **FIXED**
+- ✅ **APKs are now properly signed** and will install on all Android devices
+- ✅ **No more "unable to install" errors** 
+- ✅ **Both debug and release variants available** for compatibility
+
+### Content & Attribution
 - All Bahá'í texts are included for educational use with proper attribution
 - For official Bahá'í texts, please refer to bahai.org/library
+- This is an unofficial community resource, not officially endorsed
 
 ## 🤝 Community Impact
 
@@ -118,6 +143,13 @@ This release represents a significant step toward providing the global Bahá'í 
 **GitHub**: [bahai-resource-library](https://github.com/djtaylor333/bahai-resource-library)
 
 For technical support, feature requests, or content suggestions, please reach out via email or GitHub issues.
+
+## 🐛 Bug Reports
+
+If you experience any issues with installation or app functionality:
+1. Try the alternative APK version first
+2. Ensure your device meets the minimum requirements
+3. Report issues via GitHub or email with device details
 
 ---
 

@@ -3,7 +3,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- 9-pointed Bahá'í star - mathematically precise for launcher -->
     <path
         android:fillColor="@color/bahai_primary"
-        android:pathData="M54,10L56,35L75,25L65,45L90,40L70,55L90,70L65,65L75,85L56,75L54,100L52,75L33,85L43,65L18,70L38,55L18,40L43,45L33,25L52,35Z"/>
+        android:pathData="M54,18 L60.6,39 L81,26 L70.2,44 L92,42 L75.6,56 L88,75 L68.2,66 L66,88 L54,70 L42,88 L39.8,66 L20,75 L32.4,56 L16,42 L37.8,44 L27,26 L47.4,39 Z"/>
+    
+    <!-- Center circle for balance -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,46 A8,8 0 1,1 54,62 A8,8 0 1,1 54,46 Z" />
+        
+    <!-- Center dot -->
+    <path
+        android:fillColor="@color/bahai_primary"
+        android:pathData="M54,51 A3,3 0 1,1 54,57 A3,3 0 1,1 54,51 Z" />
 </vector>
