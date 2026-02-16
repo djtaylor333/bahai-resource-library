@@ -6,6 +6,8 @@ import android.widget.*
 import android.graphics.Color
 import androidx.cardview.widget.CardView
 import android.view.View
+import androidx.appcompat.app.AlertDialog
+import android.content.Intent
 import java.util.*
 import java.text.SimpleDateFormat
 
@@ -441,7 +443,7 @@ class CalendarActivity : AppCompatActivity() {
             setBackgroundColor(if (isDarkMode) Color.parseColor("#121212") else Color.WHITE)
             gravity = android.view.Gravity.START
         }.also { textView ->
-            AlertDialog.Builder(this, if (isDarkMode) R.style.DarkDialogTheme else R.style.AppTheme)
+            AlertDialog.Builder(this)
                 .setTitle("Bahá'í Calendar")
                 .setView(textView)
                 .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
@@ -493,10 +495,10 @@ class CalendarActivity : AppCompatActivity() {
             text = buildString {
                 if (bahaDate.description.isNotEmpty()) append("${bahaDate.description}\n")
                 append("Type: ${bahaDate.type}\n")
-                if (bahaDate.timing.isNotEmpty()) {
+                if (bahaDate.time.isNotEmpty()) {
                     append("Time: ${getLocationBasedTiming(bahaDate, dateStr)}")
                 } else {
-                    append("Time: ${bahaDate.timing}")
+                    append("Time: ${bahaDate.time}")
                 }
             }.replace("\\n", "\n")
             textSize = 12f
@@ -574,13 +576,13 @@ class CalendarActivity : AppCompatActivity() {
     
     private fun getLocationBasedTiming(bahaDate: BahaiDate, dateStr: String): String {
         return when {
-            bahaDate.timing.contains("Sunset") -> {
+            bahaDate.time.contains("Sunset") -> {
                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
                 if (date != null && LocationService.hasLocationPermission(this)) {
                     val sunTimes = LocationService.getSunTimesForLocation(this, date)
                     "Sunset ${sunTimes.sunset} (${sunTimes.location})"
                 } else {
-                    bahaDate.timing
+                    bahaDate.time
                 }
             }
             bahaDate.name.contains("Fast") -> {
@@ -592,7 +594,7 @@ class CalendarActivity : AppCompatActivity() {
                     "Sunrise to Sunset (location required for exact times)"
                 }
             }
-            else -> bahaDate.timing
+            else -> bahaDate.time
         }
     }
     
