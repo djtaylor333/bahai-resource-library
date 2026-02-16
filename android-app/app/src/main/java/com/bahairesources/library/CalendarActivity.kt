@@ -651,14 +651,15 @@ class CalendarActivity : AppCompatActivity() {
                         append("││││││││││││││││││││\n\n")
                         val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
                         append("⏰ Fast Times for Today:\n")
-                        append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
-                        append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
-                        
-                        val fastDayNumber = getFastDayNumber(date)
+                    append("Sunrise: ${sunTimes.sunrise}\n")
+                    append("Sunset: ${sunTimes.sunset}\n\n")
                         when (fastPeriod) {
                             "first" -> append("📿 First Day of the 19-Day Fast begins today.")
                             "last" -> append("📿 Final Day of the Fast - Naw-Rúz begins at sunset!")
-                            "active" -> append("📿 Day $fastDayNumber of the 19-Day Fast continues.")
+                            "active" -> {
+                                val fastDayNumber = getFastDayNumber(date)
+                                append("📿 Day $fastDayNumber of the 19-Day Fast continues.")
+                            }
                         }
                         append("\n\n")
                     }
@@ -683,10 +684,9 @@ class CalendarActivity : AppCompatActivity() {
                     if (fastPeriod != null) {
                         val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
                         append("⏰ Fast Times for Today:\n")
-                        append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
-                        append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
+                        append("Sunrise: ${sunTimes.sunrise}\n")
+                        append("Sunset: ${sunTimes.sunset}\n\n")
                         
-                        val fastDayNumber = getFastDayNumber(date)
                         when (fastPeriod) {
                             "first" -> {
                                 append("📿 First Day of the Fast:\n")
@@ -697,6 +697,7 @@ class CalendarActivity : AppCompatActivity() {
                                 append("The Fast concludes at sunset tonight, followed by Naw-Rúz celebrations!\n\n")
                             }
                             "active" -> {
+                                val fastDayNumber = getFastDayNumber(date)
                                 append("📿 Day $fastDayNumber of the 19-Day Fast:\n")
                                 append("Continue the spiritual discipline of fasting from sunrise to sunset.\n\n")
                             }
@@ -828,8 +829,9 @@ class CalendarActivity : AppCompatActivity() {
             calculateCurrentBahaiMonth()
         }
         updateCalendarDisplay()
+        // Reduced notification - only show mode without extra details
         Toast.makeText(this, 
-            if (isBahaiCalendarMode) "Switched to Bahá'í Calendar (19-day months)" else "Switched to Gregorian Calendar", 
+            if (isBahaiCalendarMode) "Bahá'í Calendar" else "Gregorian Calendar", 
             Toast.LENGTH_SHORT).show()
     }
     
@@ -1014,7 +1016,7 @@ class CalendarActivity : AppCompatActivity() {
     }
     
     private fun searchAndSetLocation(cityName: String) {
-        Toast.makeText(this, "Searching for $cityName...", Toast.LENGTH_SHORT).show()
+        // Searching silently
         
         try {
             val geocoder = android.location.Geocoder(this, Locale.getDefault())
@@ -1043,7 +1045,7 @@ class CalendarActivity : AppCompatActivity() {
                 val fullCityName = LocationService.getCityNameFromCoordinates(this, address.latitude, address.longitude)
                 LocationService.saveManualLocation(this, fullCityName, address.latitude, address.longitude)
                 updateCalendarDisplay()
-                Toast.makeText(this, "✅ Location set to: $fullCityName", Toast.LENGTH_LONG).show()
+                // Location updated silently
             } else {
                 // Search failed, show quick search options
                 showQuickSearchResults(cityName)
@@ -1094,7 +1096,7 @@ class CalendarActivity : AppCompatActivity() {
                     val (cityName, coords) = selectedCity
                     LocationService.saveManualLocation(this, cityName, coords.first, coords.second)
                     updateCalendarDisplay()
-                    Toast.makeText(this, "✅ Location set to: $cityName", Toast.LENGTH_LONG).show()
+                    // Location updated silently
                 }
             }
             .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
@@ -1129,7 +1131,7 @@ class CalendarActivity : AppCompatActivity() {
                     val fullCityName = LocationService.getCityNameFromCoordinates(this, address.latitude, address.longitude)
                     LocationService.saveManualLocation(this, fullCityName, address.latitude, address.longitude)
                     updateCalendarDisplay()
-                    Toast.makeText(this, "Location set to: $fullCityName", Toast.LENGTH_LONG).show()
+                    // Location updated silently
                 } else {
                     // Multiple results, let user choose
                     showCityChoiceDialog(addresses)
@@ -1194,7 +1196,7 @@ class CalendarActivity : AppCompatActivity() {
                     val (cityName, coords) = majorCities[which]
                     LocationService.saveManualLocation(this, cityName, coords.first, coords.second)
                     updateCalendarDisplay()
-                    Toast.makeText(this, "Location set to: $cityName", Toast.LENGTH_LONG).show()
+                    // Location updated silently
                 }
             }
             .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
@@ -1223,8 +1225,8 @@ class CalendarActivity : AppCompatActivity() {
                 append("📍 Coordinates: ${String.format("%.4f", locationInfo.latitude)}, ${String.format("%.4f", locationInfo.longitude)}\n\n")
             }
             
-            append("🌅 Sunrise: ${sunTimes.sunrise}\n")
-            append("🌅 Sunset: ${sunTimes.sunset}\n\n")
+            append("Sunrise: ${sunTimes.sunrise}\n")
+            append("Sunset: ${sunTimes.sunset}\n\n")
             
             // Add Fast information if currently in Fast period
             val calendar = Calendar.getInstance()
@@ -1308,26 +1310,19 @@ class CalendarActivity : AppCompatActivity() {
                         date
                     )
                     
-                    // Update UI with accurate data
+                    // Update UI with accurate data - no notification spam
                     runOnUiThread {
                         updateCalendarDisplay() // Refresh calendar with new data
-                        Toast.makeText(
-                            this@CalendarActivity, 
-                            "✅ Updated with ${detailedSunInfo.accuracy} sun times from ${detailedSunInfo.source}", 
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        // Removed excessive API update notifications
                     }
                 } else {
                     Log.w("CalendarActivity", "No location available for accurate sun times")
                 }
             } catch (e: Exception) {
                 Log.e("CalendarActivity", "Failed to load accurate sun times", e)
+                // Remove excessive network failure notifications
                 runOnUiThread {
-                    Toast.makeText(
-                        this@CalendarActivity, 
-                        "⚠️ Using calculated sun times (network unavailable)", 
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    // Using calculated times silently - no notification spam
                 }
             }
         }

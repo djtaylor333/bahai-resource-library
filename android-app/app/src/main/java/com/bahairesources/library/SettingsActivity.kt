@@ -633,67 +633,11 @@ class SettingsActivity : AppCompatActivity() {
             setPadding(20, 20, 20, 10)
         }
         
-        // Search input with autocomplete suggestions
-        val input = AutoCompleteTextView(this).apply {
+        // Free text location input - accepts any location worldwide
+        val input = EditText(this).apply {
             tag = "location_input"
-            hint = "e.g. New York, NY, USA"
-            threshold = 2 // Start suggesting after 2 characters
-            
-            // Populate with common world cities
-            val locationSuggestions = listOf(
-                // Major US Cities
-                "New York, NY, USA", "Los Angeles, CA, USA", "Chicago, IL, USA", 
-                "Houston, TX, USA", "Phoenix, AZ, USA", "Philadelphia, PA, USA",
-                "San Antonio, TX, USA", "San Diego, CA, USA", "Dallas, TX, USA",
-                "Austin, TX, USA", "San Jose, CA, USA", "Fort Worth, TX, USA",
-                "Jacksonville, FL, USA", "Columbus, OH, USA", "Charlotte, NC, USA",
-                "Indianapolis, IN, USA", "San Francisco, CA, USA", "Seattle, WA, USA",
-                "Denver, CO, USA", "Washington, DC, USA", "Boston, MA, USA",
-                "Nashville, TN, USA", "Oklahoma City, OK, USA", "El Paso, TX, USA",
-                "Detroit, MI, USA", "Portland, OR, USA", "Memphis, TN, USA",
-                "Las Vegas, NV, USA", "Louisville, KY, USA", "Baltimore, MD, USA",
-                "Milwaukee, WI, USA", "Albuquerque, NM, USA", "Fresno, CA, USA",
-                "Tucson, AZ, USA", "Sacramento, CA, USA", "Mesa, AZ, USA",
-                "Atlanta, GA, USA", "Kansas City, MO, USA", "Colorado Springs, CO, USA",
-                "Omaha, NE, USA", "Raleigh, NC, USA", "Miami, FL, USA",
-                "Virginia Beach, VA, USA", "Oakland, CA, USA", "Minneapolis, MN, USA",
-                "Tampa, FL, USA", "Tulsa, OK, USA", "Arlington, TX, USA",
-                "Wichita, KS, USA", "New Orleans, LA, USA", "Cleveland, OH, USA",
-                "Honolulu, HI, USA", "Anchorage, AK, USA",
-                
-                // Major Canadian Cities
-                "Toronto, ON, Canada", "Montreal, QC, Canada", "Vancouver, BC, Canada",
-                "Calgary, AB, Canada", "Edmonton, AB, Canada", "Ottawa, ON, Canada",
-                "Winnipeg, MB, Canada", "Quebec City, QC, Canada", "Hamilton, ON, Canada",
-                "Halifax, NS, Canada", "London, ON, Canada", "Victoria, BC, Canada",
-                "St. John's, NL, Canada", "Saskatoon, SK, Canada", "Regina, SK, Canada",
-                
-                // Major International Cities
-                "London, UK", "Paris, France", "Berlin, Germany", "Rome, Italy",
-                "Madrid, Spain", "Amsterdam, Netherlands", "Vienna, Austria",
-                "Brussels, Belgium", "Dublin, Ireland", "Stockholm, Sweden",
-                "Copenhagen, Denmark", "Oslo, Norway", "Helsinki, Finland",
-                "Zurich, Switzerland", "Prague, Czech Republic", "Warsaw, Poland",
-                "Budapest, Hungary", "Athens, Greece", "Lisbon, Portugal",
-                "Moscow, Russia", "Istanbul, Turkey", "Tehran, Iran",
-                "Cairo, Egypt", "Lagos, Nigeria", "Johannesburg, South Africa",
-                "Tokyo, Japan", "Seoul, South Korea", "Beijing, China",
-                "Shanghai, China", "Hong Kong", "Singapore", "Bangkok, Thailand",
-                "Mumbai, India", "Delhi, India", "Bangalore, India", "Kolkata, India",
-                "Sydney, Australia", "Melbourne, Australia", "Brisbane, Australia",
-                "Perth, Australia", "Auckland, New Zealand", "Wellington, New Zealand",
-                "Mexico City, Mexico", "Buenos Aires, Argentina", "São Paulo, Brazil",
-                "Rio de Janeiro, Brazil", "Santiago, Chile", "Lima, Peru",
-                "Bogotá, Colombia", "Caracas, Venezuela", "Quito, Ecuador",
-                "La Paz, Bolivia", "Montevideo, Uruguay", "Asunción, Paraguay"
-            )
-            
-            val adapter = ArrayAdapter(
-                this@SettingsActivity,
-                android.R.layout.simple_dropdown_item_1line,
-                locationSuggestions
-            )
-            setAdapter(adapter)
+            hint = "Enter any city, town, or location worldwide"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
             
             // Set current location if exists
             val currentLocation = SettingsManager.getManualLocation(this@SettingsActivity)
@@ -704,43 +648,21 @@ class SettingsActivity : AppCompatActivity() {
         
         // Quick selection buttons for common locations
         val quickSelectLabel = TextView(this).apply {
-            text = "Quick Select:"
+            text = "Examples:"
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
             textSize = 14f
             setPadding(0, 15, 0, 10)
         }
         
-        val quickButtonsLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
+        val exampleLocationsText = TextView(this).apply {
+            text = "New York, NY • London, UK • Tokyo, Japan • Sydney, Australia • Any city, town, or location worldwide"
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            textSize = 12f
+            setPadding(0, 5, 0, 15)
         }
         
-        val quickLocations = listOf(
-            "New York, NY, USA", "Los Angeles, CA, USA", "London, UK", 
-            "Toronto, ON, Canada", "Sydney, Australia"
-        )
-        
-        quickLocations.forEachIndexed { index, location ->
-            val button = Button(this).apply {
-                text = location.split(",")[0] // Show just city name
-                textSize = 12f
-                setPadding(10, 5, 10, 5)
-                setBackgroundColor(if (isDarkMode) Color.parseColor("#37474F") else Color.parseColor("#E0E0E0"))
-                setTextColor(if (isDarkMode) Color.WHITE else Color.parseColor("#333333"))
-                layoutParams = LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
-                ).apply {
-                    if (index > 0) setMargins(5, 0, 0, 0)
-                }
-                
-                setOnClickListener {
-                    input.setText(location)
-                }
-            }
-            quickButtonsLayout.addView(button)
-        }
-        
-        val detectionLabel = TextView(this).apply {
-            text = "💡 Tip: Start typing to see suggestions, or use Quick Select buttons above."
+        val helpLabel = TextView(this).apply {
+            text = "💡 Tip: You can now enter ANY location worldwide - cities, towns, villages, or specific addresses."
             setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#666666"))
             textSize = 12f
             setPadding(0, 15, 0, 0)
@@ -748,15 +670,15 @@ class SettingsActivity : AppCompatActivity() {
         
         layout.addView(input)
         layout.addView(quickSelectLabel)
-        layout.addView(quickButtonsLayout)
-        layout.addView(detectionLabel)
+        layout.addView(exampleLocationsText)
+        layout.addView(helpLabel)
         
         return layout
     }
     
     private fun handleLocationSave(dialog: AlertDialog) {
         val layout = dialog.findViewById<LinearLayout>(android.R.id.content)?.getChildAt(0) as? LinearLayout
-        val input = layout?.findViewWithTag<AutoCompleteTextView>("location_input")
+        val input = layout?.findViewWithTag<EditText>("location_input")
         
         val location = input?.text?.toString()?.trim() ?: ""
         if (location.isNotEmpty()) {

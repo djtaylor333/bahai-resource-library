@@ -353,7 +353,7 @@ class MainActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             setTextAppearance(R.style.TextAppearance_App_TitleMedium)
-            setTextColor(if (isDarkMode) Color.parseColor("#E6E0E9") else Color.parseColor("#1D1B20"))
+            setTextColor(if (isDarkMode) Color.parseColor("#FFFFFF") else Color.parseColor("#000000"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
             setPadding(0, 0, 0, bottomMargin)
         }
@@ -361,7 +361,7 @@ class MainActivity : AppCompatActivity() {
         val descView = TextView(this).apply {
             text = description
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            setTextColor(if (isDarkMode) Color.parseColor("#CAC4D0") else Color.parseColor("#49454F"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
             maxLines = 2
         }
         
