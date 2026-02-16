@@ -6,6 +6,14 @@ import android.widget.*
 import android.graphics.Color
 import androidx.cardview.widget.CardView
 import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.view.View
 
 class SettingsActivity : AppCompatActivity() {
     
@@ -286,39 +294,178 @@ class SettingsActivity : AppCompatActivity() {
         }
         
         val titleView = TextView(this).apply {
-            text = "📅 Calendar Settings"
+            text = "📅 Religious Holidays Display"
             textSize = currentFontSize + 2f
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1976D2"))
             setPadding(0, 0, 0, 15)
         }
         
-        val otherReligionsRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 10, 0, 10)
+        val descriptionView = TextView(this).apply {
+            text = "Choose which religious traditions to display in the calendar alongside Bahá'í holy days:"
+            textSize = currentFontSize - 2f
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            setPadding(0, 0, 0, 15)
         }
         
-        val otherReligionsLabel = TextView(this).apply {
-            text = "Show Other Religious Holidays"
+        // Christianity Settings
+        val christianRow = createReligionSetting(
+            "✝️ Christianity", 
+            "Christmas, Easter, Good Friday, etc.",
+            SettingsManager.getShowChristianHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowChristianHolidays(this, isChecked)
+        }
+        
+        // Islam Settings
+        val islamRow = createReligionSetting(
+            "☪️ Islam", 
+            "Eid al-Fitr, Eid al-Adha, Ramadan, etc.",
+            SettingsManager.getShowIslamicHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowIslamicHolidays(this, isChecked)
+        }
+        
+        // Judaism Settings
+        val jewishRow = createReligionSetting(
+            "✡️ Judaism", 
+            "Passover, Yom Kippur, Rosh Hashanah, etc.",
+            SettingsManager.getShowJewishHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowJewishHolidays(this, isChecked)
+        }
+        
+        // Hinduism Settings
+        val hinduRow = createReligionSetting(
+            "🕉️ Hinduism", 
+            "Diwali, Holi, Ram Navami, etc.",
+            SettingsManager.getShowHinduHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowHinduHolidays(this, isChecked)
+        }
+        
+        // Buddhism Settings
+        val buddhismRow = createReligionSetting(
+            "☸️ Buddhism", 
+            "Buddha's Birthday, Vesak Day, etc.",
+            SettingsManager.getShowBuddhistHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowBuddhistHolidays(this, isChecked)
+        }
+        
+        // Secular Holidays Settings
+        val secularRow = createReligionSetting(
+            "🌍 Secular/National", 
+            "New Year's Day, Independence Days, etc.",
+            SettingsManager.getShowSecularHolidays(this)
+        ) { isChecked ->
+            SettingsManager.setShowSecularHolidays(this, isChecked)
+        }
+        
+        // All/None quick options
+        val quickOptionsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 20, 0, 10)
+            gravity = android.view.Gravity.CENTER
+        }
+        
+        val selectAllButton = Button(this).apply {
+            text = "Select All"
+            textSize = currentFontSize - 2f
+            setBackgroundColor(Color.parseColor("#4CAF50"))
+            setTextColor(Color.WHITE)
+            setPadding(20, 10, 20, 10)
+            setOnClickListener { setAllReligiousHolidays(true) }
+        }
+        
+        val selectNoneButton = Button(this).apply {
+            text = "Select None"
+            textSize = currentFontSize - 2f
+            setBackgroundColor(Color.parseColor("#FF5722"))
+            setTextColor(Color.WHITE)
+            setPadding(20, 10, 20, 10)
+            setOnClickListener { setAllReligiousHolidays(false) }
+        }
+        
+        quickOptionsRow.addView(selectAllButton)
+        quickOptionsRow.addView(android.view.View(this).apply { 
+            layoutParams = LinearLayout.LayoutParams(20, 0) 
+        })
+        quickOptionsRow.addView(selectNoneButton)
+        
+        layout.addView(titleView)
+        layout.addView(descriptionView)
+        layout.addView(christianRow)
+        layout.addView(islamRow)
+        layout.addView(jewishRow)
+        layout.addView(hinduRow)
+        layout.addView(buddhismRow)
+        layout.addView(secularRow)
+        layout.addView(quickOptionsRow)
+        card.addView(layout)
+        
+        return card
+    }
+    
+    private fun createReligionSetting(
+        title: String, 
+        description: String, 
+        isChecked: Boolean, 
+        onCheckedChange: (Boolean) -> Unit
+    ): LinearLayout {
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 8, 0, 8)
+        }
+        
+        val titleRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 5, 0, 5)
+        }
+        
+        val titleLabel = TextView(this).apply {
+            text = title
             textSize = currentFontSize
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
-        val otherReligionsSwitch = Switch(this).apply {
-            isChecked = SettingsManager.getShowOtherReligions(this@SettingsActivity)
-            setOnCheckedChangeListener { _, isChecked ->
-                SettingsManager.setShowOtherReligions(this@SettingsActivity, isChecked)
+        val switch = Switch(this).apply {
+            this.isChecked = isChecked
+            setOnCheckedChangeListener { _, checked ->
+                onCheckedChange(checked)
             }
         }
         
-        otherReligionsRow.addView(otherReligionsLabel)
-        otherReligionsRow.addView(otherReligionsSwitch)
+        val descriptionLabel = TextView(this).apply {
+            text = description
+            textSize = currentFontSize - 2f
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            setPadding(0, 2, 0, 5)
+        }
         
-        layout.addView(titleView)
-        layout.addView(otherReligionsRow)
-        card.addView(layout)
+        titleRow.addView(titleLabel)
+        titleRow.addView(switch)
+        row.addView(titleRow)
+        row.addView(descriptionLabel)
         
-        return card
+        return row
+    }
+    
+    private fun setAllReligiousHolidays(enabled: Boolean) {
+        SettingsManager.setShowChristianHolidays(this, enabled)
+        SettingsManager.setShowIslamicHolidays(this, enabled)
+        SettingsManager.setShowJewishHolidays(this, enabled)
+        SettingsManager.setShowHinduHolidays(this, enabled)
+        SettingsManager.setShowBuddhistHolidays(this, enabled)
+        SettingsManager.setShowSecularHolidays(this, enabled)
+        
+        Toast.makeText(this, 
+            if (enabled) "All religious holidays enabled" else "All religious holidays disabled", 
+            Toast.LENGTH_SHORT
+        ).show()
+        
+        // Restart the app to apply changes
+        restartApp()
     }
     
     private fun createAboutSection(): CardView {
@@ -341,9 +488,9 @@ class SettingsActivity : AppCompatActivity() {
         }
         
         val aboutText = TextView(this).apply {
-            text = """
+            val aboutContent = """
                 Bahá'í Resource Library
-                Version 0.7.0
+                Version 0.8.0
                 
                 Developed by: David Taylor
                 Date: February 2026
@@ -352,6 +499,7 @@ class SettingsActivity : AppCompatActivity() {
                 
                 For official Bahá'í texts and authoritative sources, visit bahai.org
             """.trimIndent()
+            setTextWithClickableUrls(this, aboutContent)
             textSize = currentFontSize
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
         }
@@ -441,11 +589,27 @@ class SettingsActivity : AppCompatActivity() {
     }
     
     private fun showRestartDialog(message: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Restart Required")
-            .setMessage(message)
-            .setPositiveButton("OK") { _, _ -> finish() }
-            .show()
+        // Show brief toast message about the change
+        Toast.makeText(this, "Settings updated - restarting app...", Toast.LENGTH_SHORT).show()
+        
+        // Restart the app automatically
+        restartApp()
+    }
+    
+    private fun restartApp() {
+        // Create intent to restart the main activity
+        val intent = Intent(this, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        
+        // Finish current activity and start main activity
+        finish()
+        startActivity(intent)
+        
+        // Apply animation for smooth transition
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        
+        // Force kill current process to ensure clean restart
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
     
     private fun createSpacing(height: Int): android.view.View {
@@ -455,5 +619,37 @@ class SettingsActivity : AppCompatActivity() {
                 height
             )
         }
+    }
+    
+    private fun setTextWithClickableUrls(textView: TextView, text: String) {
+        val spannableString = SpannableString(text)
+        
+        // Find all URLs in the text and make them clickable
+        val urlPattern = Regex("https?://[^\\s]+|bahai\\.org(?:/[^\\s]*)?")
+        val matches = urlPattern.findAll(text)
+        
+        for (match in matches) {
+            val start = match.range.first
+            val end = match.range.last + 1
+            val url = match.value
+            
+            val clickableSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    try {
+                        val fullUrl = if (url.startsWith("http")) url else "https://$url"
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fullUrl))
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this@SettingsActivity, "Could not open link", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            
+            spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spannableString.setSpan(ForegroundColorSpan(Color.parseColor("#4285F4")), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 }

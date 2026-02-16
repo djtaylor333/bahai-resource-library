@@ -17,11 +17,39 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var calendarLayout: LinearLayout
     private lateinit var holyDaysList: LinearLayout
     private var currentDate = Calendar.getInstance()
-    private var showOtherReligions = false
     private var isDarkMode = false
     private var currentFontSize = SettingsManager.FONT_MEDIUM
+    private var isBahaiCalendarMode = false // New: Calendar mode toggle
     
     private lateinit var locationService: LocationService
+    
+    // Bahá'í Calendar Structure
+    private val bahaiMonths = listOf(
+        "Bahá" to "Splendor",       // March 21 - April 8
+        "Jalál" to "Glory",         // April 9 - April 27
+        "Jamál" to "Beauty",        // April 28 - May 16
+        "'Aẓamat" to "Grandeur",    // May 17 - June 4
+        "Núr" to "Light",           // June 5 - June 23
+        "Raḥmat" to "Mercy",        // June 24 - July 12
+        "Kalimát" to "Words",       // July 13 - July 31
+        "Kamál" to "Perfection",    // August 1 - August 19
+        "Asmá'" to "Names",         // August 20 - September 7
+        "'Izzat" to "Might",        // September 8 - September 26
+        "Mashíyyat" to "Will",      // September 27 - October 15
+        "'Ilm" to "Knowledge",      // October 16 - November 3
+        "Qudrat" to "Power",        // November 4 - November 22
+        "Qawl" to "Speech",         // November 23 - December 11
+        "Masá'il" to "Questions",   // December 12 - December 30
+        "Sharaf" to "Honor",        // December 31 - January 18
+        "Sulṭán" to "Sovereignty",  // January 19 - February 6
+        "Mulk" to "Dominion",       // February 7 - February 25
+        "Ayyám-i-Há" to "Intercalary Days", // February 26 - March 1 (4 days)
+        "'Alá'" to "Loftiness"      // March 2 - March 20 (Fast period)
+    )
+    
+    // Current Bahá'í date calculation variables
+    private var currentBahaiYear = 183 // BE 183 (2026 CE)
+    private var currentBahaiMonthIndex = 0
     
     // Expanded Bahá'í calendar data for 2026 (BE 183)
     private val holydaysData = mapOf(
@@ -61,16 +89,6 @@ class CalendarActivity : AppCompatActivity() {
         "2026-08-01" to BahaiDate("Feast of Kamál", "Perfection - 8th Bahá'í month begins", "Feast Day", "Sunset July 31", false),
         "2026-08-20" to BahaiDate("Feast of Asmá'", "Names - 9th Bahá'í month begins", "Feast Day", "Sunset August 19", false),
         "2026-09-08" to BahaiDate("Feast of 'Izzat", "Might - 10th Bahá'í month begins", "Feast Day", "Sunset September 7", false)
-    )
-    
-    private val otherReligiousHolidays = mapOf(
-        // Sample other religious holidays
-        "2026-01-01" to "New Year's Day",
-        "2026-03-29" to "Good Friday (Christian)",
-        "2026-03-31" to "Easter Sunday (Christian)", 
-        "2026-04-13" to "Ram Navami (Hindu)",
-        "2026-04-22" to "Earth Day",
-        "2026-12-25" to "Christmas (Christian)"
     )
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,6 +169,9 @@ class CalendarActivity : AppCompatActivity() {
         
         scrollView.addView(mainLayout)
         setContentView(scrollView)
+        
+        // Initialize current Bahá'í month
+        calculateCurrentBahaiMonth()
         
         // Initialize calendar display
         updateCalendarDisplay()
@@ -241,25 +262,25 @@ class CalendarActivity : AppCompatActivity() {
             gravity = android.view.Gravity.CENTER
         }
         
-        val otherReligionsToggle = Button(this).apply {
-            text = if (showOtherReligions) "✓ Other Religions" else "☐ Other Religions"
-            setBackgroundColor(if (showOtherReligions) Color.parseColor("#9C27B0") else Color.parseColor("#CCCCCC"))
+        val calendarModeToggle = Button(this).apply {
+            text = if (isBahaiCalendarMode) "🌙 Bahá'í Calendar" else "📅 Gregorian Calendar"
+            setBackgroundColor(if (isBahaiCalendarMode) Color.parseColor("#1976D2") else Color.parseColor("#4CAF50"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             textSize = 12f
-            setOnClickListener { toggleOtherReligions() }
+            setOnClickListener { toggleCalendarMode() }
         }
         
         val locationButton = Button(this).apply {
-            text = "📍 Get Location Times"
+            text = "📍 Location & Times"
             setBackgroundColor(Color.parseColor("#2196F3"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             textSize = 12f
-            setOnClickListener { requestLocationAndUpdateTimes() }
+            setOnClickListener { showLocationMenu() }
         }
         
-        optionsRow.addView(otherReligionsToggle)
+        optionsRow.addView(calendarModeToggle)
         optionsRow.addView(View(this).apply { layoutParams = LinearLayout.LayoutParams(20, 0) })
         optionsRow.addView(locationButton)
         
@@ -271,11 +292,22 @@ class CalendarActivity : AppCompatActivity() {
     }
     
     private fun updateCalendarDisplay() {
-        val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        monthYearText.text = dateFormat.format(currentDate.time)
-        
         // Clear existing calendar
         calendarLayout.removeAllViews()
+        
+        if (isBahaiCalendarMode) {
+            updateBahaiCalendarDisplay()
+        } else {
+            updateGregorianCalendarDisplay()
+        }
+        
+        // Update holy days list
+        updateHolyDaysList()
+    }
+    
+    private fun updateGregorianCalendarDisplay() {
+        val dateFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        monthYearText.text = dateFormat.format(currentDate.time)
         
         // Add day headers
         val daysHeader = LinearLayout(this).apply {
@@ -288,7 +320,7 @@ class CalendarActivity : AppCompatActivity() {
             val dayView = TextView(this).apply {
                 text = day
                 textSize = 12f
-                setTextColor(Color.parseColor("#666666"))
+                setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
                 gravity = android.view.Gravity.CENTER
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 setTypeface(typeface, android.graphics.Typeface.BOLD)
@@ -318,7 +350,7 @@ class CalendarActivity : AppCompatActivity() {
             
             // Create days in week
             for (dayOfWeek in 0..6) {
-                val dayView = createDayView(week, dayOfWeek, startDay, dayCounter, daysInMonth)
+                val dayView = createGregorianDayView(week, dayOfWeek, startDay, dayCounter, daysInMonth)
                 weekRow.addView(dayView)
                 
                 if (week == 0 && dayOfWeek >= startDay) dayCounter++
@@ -327,12 +359,67 @@ class CalendarActivity : AppCompatActivity() {
             
             calendarLayout.addView(weekRow)
         }
-        
-        // Update holy days list
-        updateHolyDaysList()
     }
     
-    private fun createDayView(week: Int, dayOfWeek: Int, startDay: Int, dayCounter: Int, daysInMonth: Int): TextView {
+    private fun updateBahaiCalendarDisplay() {
+        // Display Bahá'í month and year
+        val (monthName, monthTranslation) = bahaiMonths[currentBahaiMonthIndex]
+        monthYearText.text = "$monthName ($monthTranslation) - BE $currentBahaiYear"
+        
+        // Add day number headers (1-19 for regular months, fewer for Ayyám-i-Há)
+        val daysHeader = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 0, 0, 10)
+        }
+        
+        val daysInBahaiMonth = if (currentBahaiMonthIndex == 18) 4 else 19 // Ayyám-i-Há has 4 days
+        
+        // Show day numbers in a grid format
+        for (i in 1..daysInBahaiMonth) {
+            val dayView = TextView(this).apply {
+                text = i.toString()
+                textSize = 12f
+                setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+                gravity = android.view.Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+                setPadding(4, 8, 4, 8)
+            }
+            daysHeader.addView(dayView)
+        }
+        calendarLayout.addView(daysHeader)
+        
+        // Create Bahá'í calendar grid (show days 1-19 in rows)
+        var dayCounter = 1
+        val daysPerRow = 7 // Keep 7 days per row for consistency
+        
+        while (dayCounter <= daysInBahaiMonth) {
+            val weekRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 5, 0, 5)
+            }
+            
+            // Create up to 7 days per row
+            for (dayOfWeek in 0 until daysPerRow) {
+                val dayView = if (dayCounter <= daysInBahaiMonth) {
+                    createBahaiDayView(dayCounter)
+                } else {
+                    // Empty view for remaining slots
+                    TextView(this).apply {
+                        text = ""
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                        setPadding(8, 12, 8, 12)
+                    }
+                }
+                weekRow.addView(dayView)
+                dayCounter++
+            }
+            
+            calendarLayout.addView(weekRow)
+        }
+    }
+    
+    private fun createGregorianDayView(week: Int, dayOfWeek: Int, startDay: Int, dayCounter: Int, daysInMonth: Int): TextView {
         val dayNum = when {
             week == 0 && dayOfWeek < startDay -> 0
             dayCounter > daysInMonth -> 0
@@ -346,7 +433,7 @@ class CalendarActivity : AppCompatActivity() {
             setPadding(8, 12, 8, 12)
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             
-            // Check if this day has a holy day
+            // Check if this day has a holy day or religious holiday
             val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(
                 Calendar.getInstance().apply {
                     time = currentDate.time
@@ -354,14 +441,19 @@ class CalendarActivity : AppCompatActivity() {
                 }.time
             )
             
+            val enabledHolidays = ReligiousHolidaysData.getAllEnabledHolidays(this@CalendarActivity)
+            
             when {
                 holydaysData.containsKey(dateStr) -> {
                     setTextColor(Color.WHITE)
-                    setBackgroundColor(Color.parseColor("#1976D2"))
+                    setBackgroundColor(Color.parseColor("#1976D2")) // Bahá'í holidays in blue
                 }
-                showOtherReligions && otherReligiousHolidays.containsKey(dateStr) -> {
+                enabledHolidays.containsKey(dateStr) -> {
+                    val holiday = enabledHolidays[dateStr]!!
+                    val religionColors = ReligiousHolidaysData.getReligionColors()
+                    val holidayColor = religionColors[holiday.religion] ?: "#9C27B0"
                     setTextColor(Color.WHITE)
-                    setBackgroundColor(Color.parseColor("#9C27B0"))
+                    setBackgroundColor(Color.parseColor(holidayColor))
                 }
                 else -> {
                     setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
@@ -378,61 +470,162 @@ class CalendarActivity : AppCompatActivity() {
         return dayView
     }
     
-    private fun showDateDetails(date: String) {
-        val bahaiEvent = holydaysData[date]
-        
-        val displayText = if (bahaiEvent != null) {
-            buildString {
-                append("📅 ${bahaiEvent.name}\n")
-                append("${bahaiEvent.type}")
-                if (bahaiEvent.workSuspended) append(" ⭐")
-                append("\n\n")
-                if (bahaiEvent.description.isNotEmpty()) {
-                    append("${bahaiEvent.description}\n\n")
+    private fun createBahaiDayView(dayNum: Int): TextView {
+        val dayView = TextView(this).apply {
+            text = dayNum.toString()
+            textSize = 14f
+            gravity = android.view.Gravity.CENTER
+            setPadding(8, 12, 8, 12)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            
+            // Calculate the Gregorian date for this Bahá'í day
+            val gregorianDate = getBahaiDayGregorianDate(currentBahaiMonthIndex, dayNum)
+            val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(gregorianDate)
+            
+            val enabledHolidays = ReligiousHolidaysData.getAllEnabledHolidays(this@CalendarActivity)
+            
+            when {
+                holydaysData.containsKey(dateStr) -> {
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(Color.parseColor("#1976D2")) // Bahá'í holidays in blue
                 }
-                if (bahaiEvent.time.isNotEmpty()) {
-                    append("⏰ Observance: ${bahaiEvent.time}\n\n")
+                enabledHolidays.containsKey(dateStr) -> {
+                    val holiday = enabledHolidays[dateStr]!!
+                    val religionColors = ReligiousHolidaysData.getReligionColors()
+                    val holidayColor = religionColors[holiday.religion] ?: "#9C27B0"
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(Color.parseColor(holidayColor))
                 }
-                if (bahaiEvent.workSuspended) {
-                    append("🛠️ Work is suspended on this holy day\n\n")
+                else -> {
+                    setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+                    setBackgroundColor(Color.TRANSPARENT)
                 }
-                
-                // Special information for Fast period
-                when (bahaiEvent.name) {
-                    "Fast Begins" -> {
-                        append("The Bahá'í Fast is a 19-day period of spiritual preparation leading to Naw-Rúz. ")
-                        append("During this time, Bahá'ís aged 15-70 abstain from food and drink from sunrise to sunset. ")
-                        append("The Fast is a time for prayer, meditation, and spiritual renewal.\n\n")
-                        append("Exemptions include children, elderly, pregnant/nursing mothers, the sick, and travelers.")
-                    }
-                    "Fast Ends" -> {
-                        append("The 19-day Fast concludes this evening at sunset, followed immediately by Naw-Rúz celebrations.")
-                    }
-                    "Ayyám-i-Há Begins" -> {
-                        append("The Intercalary Days (Ayyám-i-Há) are four or five days of celebration, gift-giving, ")
-                        append("charity, and preparation for the Fast. These days fall outside the regular 19-day month structure.")
-                    }
-                    else -> {
-                        // Standard holy day information
-                        if (bahaiEvent.type == "Major Holy Day") {
-                            append("This is one of the nine major Bahá'í holy days. ")
-                        }
-                        if (bahaiEvent.type == "Feast Day") {
-                            append("Nineteen Day Feast - a community gathering for worship, consultation, and fellowship.")
-                        }
-                    }
-                }
-            }
-        } else {
-            val dayOfMonth = try {
-                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(date)?.let { dateObj ->
-                    SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()).format(dateObj)
-                }
-            } catch (e: Exception) {
-                date
             }
             
-            "📅 $dayOfMonth\n\nNo Bahá'í observances on this date.\n\nFor the most accurate Bahá'í calendar dates in your location, please consult your Local Spiritual Assembly or official Bahá'í calendar resources."
+            // Add click listener to show date details
+            setOnClickListener { showDateDetails(dateStr) }
+        }
+        
+        return dayView
+    }
+    
+    private fun getBahaiDayGregorianDate(monthIndex: Int, day: Int): Date {
+        val calendar = Calendar.getInstance()
+        
+        // Calculate the starting Gregorian date for each Bahá'í month
+        when (monthIndex) {
+            0 -> calendar.set(2026, 2, 21 + day - 1)  // Bahá: March 21-April 8
+            1 -> calendar.set(2026, 3, 9 + day - 1)   // Jalál: April 9-27
+            2 -> if (day <= 13) calendar.set(2026, 3, 28 + day - 1) else calendar.set(2026, 4, day - 13)  // Jamál: April 28-May 16
+            3 -> if (day <= 15) calendar.set(2026, 4, 17 + day - 1) else calendar.set(2026, 5, day - 15)  // 'Aẓamat: May 17-June 4
+            4 -> calendar.set(2026, 5, 5 + day - 1)   // Núr: June 5-23
+            5 -> if (day <= 7) calendar.set(2026, 5, 24 + day - 1) else calendar.set(2026, 6, day - 7)   // Raḥmat: June 24-July 12
+            6 -> calendar.set(2026, 6, 13 + day - 1)  // Kalimát: July 13-31
+            7 -> calendar.set(2026, 7, 1 + day - 1)   // Kamál: August 1-19
+            8 -> if (day <= 12) calendar.set(2026, 7, 20 + day - 1) else calendar.set(2026, 8, day - 12)  // Asmá': August 20-September 7
+            9 -> if (day <= 11) calendar.set(2026, 8, 8 + day - 1) else calendar.set(2026, 8, 27 + day - 11) // 'Izzat: September 8-26
+            10 -> if (day <= 4) calendar.set(2026, 8, 27 + day - 1) else calendar.set(2026, 9, day - 4)   // Mashíyyat: September 27-October 15
+            11 -> if (day <= 16) calendar.set(2026, 9, 16 + day - 1) else calendar.set(2026, 10, day - 16) // 'Ilm: October 16-November 3
+            12 -> calendar.set(2026, 10, 4 + day - 1)  // Qudrat: November 4-22
+            13 -> if (day <= 8) calendar.set(2026, 10, 23 + day - 1) else calendar.set(2026, 11, day - 8)  // Qawl: November 23-December 11
+            14 -> calendar.set(2026, 11, 12 + day - 1) // Masá'il: December 12-30
+            15 -> if (day <= 1) calendar.set(2026, 11, 31 + day - 1) else calendar.set(2027, 0, day - 1) // Sharaf: December 31-January 18
+            16 -> if (day <= 13) calendar.set(2027, 0, 19 + day - 1) else calendar.set(2027, 1, day - 13) // Sulṭán: January 19-February 6
+            17 -> calendar.set(2027, 1, 7 + day - 1)   // Mulk: February 7-25
+            18 -> calendar.set(2026, 1, 26 + day - 1)  // Ayyám-i-Há: February 26-March 1 (4 days)
+            19 -> calendar.set(2026, 2, 2 + day - 1)   // 'Alá': March 2-20
+            else -> calendar.set(2026, 2, 21)          // Default to Naw-Rúz
+        }
+        
+        return calendar.time
+    }
+    
+    private fun showDateDetails(date: String) {
+        val bahaiEvent = holydaysData[date]
+        val enabledHolidays = ReligiousHolidaysData.getAllEnabledHolidays(this)
+        val religiousHoliday = enabledHolidays[date]
+        
+        val displayText = when {
+            bahaiEvent != null -> {
+                buildString {
+                    append("📅 ${bahaiEvent.name}\n")
+                    append("${bahaiEvent.type}")
+                    if (bahaiEvent.workSuspended) append(" ⭐")
+                    append("\n\n")
+                    if (bahaiEvent.description.isNotEmpty()) {
+                        append("${bahaiEvent.description}\n\n")
+                    }
+                    if (bahaiEvent.time.isNotEmpty()) {
+                        append("⏰ Observance: ${bahaiEvent.time}\n\n")
+                    }
+                    if (bahaiEvent.workSuspended) {
+                        append("🛠️ Work is suspended on this holy day\n\n")
+                    }
+                    
+                    // Special information for Fast period
+                    when (bahaiEvent.name) {
+                        "Fast Begins" -> {
+                            append("The Bahá'í Fast is a 19-day period of spiritual preparation leading to Naw-Rúz. ")
+                            append("During this time, Bahá'ís aged 15-70 abstain from food and drink from sunrise to sunset. ")
+                            append("The Fast is a time for prayer, meditation, and spiritual renewal.\n\n")
+                            append("Exemptions include children, elderly, pregnant/nursing mothers, the sick, and travelers.")
+                        }
+                        "Fast Ends" -> {
+                            append("The 19-day Fast concludes this evening at sunset, followed immediately by Naw-Rúz celebrations.")
+                        }
+                        "Ayyám-i-Há Begins" -> {
+                            append("The Intercalary Days (Ayyám-i-Há) are four or five days of celebration, gift-giving, ")
+                            append("charity, and preparation for the Fast. These days fall outside the regular 19-day month structure.")
+                        }
+                        else -> {
+                            // Standard holy day information
+                            if (bahaiEvent.type == "Major Holy Day") {
+                                append("This is one of the nine major Bahá'í holy days. ")
+                            }
+                            if (bahaiEvent.type == "Feast Day") {
+                                append("Nineteen Day Feast - a community gathering for worship, consultation, and fellowship.")
+                            }
+                        }
+                    }
+                    
+                    // Add religious holiday if present on same date
+                    if (religiousHoliday != null) {
+                        append("\n\n━━━━━━━━━━━━━━━━━━━━\n\n")
+                        append("🌍 ${religiousHoliday.name}\n")
+                        append("${religiousHoliday.religion} ${religiousHoliday.type}\n\n")
+                        append("${religiousHoliday.description}")
+                    }
+                }
+            }
+            religiousHoliday != null -> {
+                buildString {
+                    append("🌍 ${religiousHoliday.name}\n")
+                    append("${religiousHoliday.religion} ${religiousHoliday.type}\n\n")
+                    append("${religiousHoliday.description}\n\n")
+                    append("Note: You can adjust which religious holidays are shown in Settings > Religious Holidays Display.")
+                }
+            }
+            else -> {
+                val dayOfMonth = try {
+                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(date)?.let { dateObj ->
+                        SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault()).format(dateObj)
+                    }
+                } catch (e: Exception) {
+                    date
+                }
+                
+                buildString {
+                    append("📅 $dayOfMonth\n\n")
+                    append("No Bahá'í observances on this date.")
+                    
+                    val enabledReligionsCount = ReligiousHolidaysData.getEnabledReligionsCount(this@CalendarActivity)
+                    if (enabledReligionsCount == 0) {
+                        append("\n\n💡 Tip: You can enable holidays from other religions in Settings > Religious Holidays Display to see a more complete calendar view.")
+                    }
+                    
+                    append("\n\nFor the most accurate Bahá'í calendar dates in your location, please consult your Local Spiritual Assembly or official Bahá'í calendar resources.")
+                }
+            }
         }
         
         TextView(this).apply {
@@ -444,9 +637,12 @@ class CalendarActivity : AppCompatActivity() {
             gravity = android.view.Gravity.START
         }.also { textView ->
             AlertDialog.Builder(this)
-                .setTitle("Bahá'í Calendar")
+                .setTitle("Calendar Details")
                 .setView(textView)
                 .setPositiveButton("Close") { dialog, _ -> dialog.dismiss() }
+                .setNeutralButton("Settings") { _, _ ->
+                    startActivity(Intent(this, SettingsActivity::class.java))
+                }
                 .show()
         }
     }
@@ -513,21 +709,286 @@ class CalendarActivity : AppCompatActivity() {
     }
     
     private fun changeMonth(delta: Int) {
-        currentDate.add(Calendar.MONTH, delta)
+        if (isBahaiCalendarMode) {
+            // Navigate Bahá'í months
+            currentBahaiMonthIndex += delta
+            if (currentBahaiMonthIndex < 0) {
+                currentBahaiMonthIndex = 19 // Wrap to last month (19th month)
+                currentBahaiYear--
+            } else if (currentBahaiMonthIndex > 19) {
+                currentBahaiMonthIndex = 0  // Wrap to first month
+                currentBahaiYear++
+            }
+        } else {
+            // Navigate Gregorian months
+            currentDate.add(Calendar.MONTH, delta)
+        }
         updateCalendarDisplay()
     }
     
     private fun goToToday() {
         currentDate = Calendar.getInstance()
+        if (isBahaiCalendarMode) {
+            calculateCurrentBahaiMonth()
+        }
         updateCalendarDisplay()
     }
     
-    private fun toggleOtherReligions() {
-        showOtherReligions = !showOtherReligions
+    private fun toggleCalendarMode() {
+        isBahaiCalendarMode = !isBahaiCalendarMode
+        if (isBahaiCalendarMode) {
+            // Switch to current Bahá'í month when switching to Bahá'í mode
+            calculateCurrentBahaiMonth()
+        }
         updateCalendarDisplay()
         Toast.makeText(this, 
-            if (showOtherReligions) "Showing other religious holidays" else "Showing only Bahá'í dates", 
+            if (isBahaiCalendarMode) "Switched to Bahá'í Calendar (19-day months)" else "Switched to Gregorian Calendar", 
             Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun calculateCurrentBahaiMonth() {
+        val calendar = Calendar.getInstance()
+        val month = calendar.get(Calendar.MONTH) + 1 // 1-based month
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
+        
+        // Calculate current Bahá'í month based on Gregorian date
+        // Naw-Rúz (Bahá'í New Year) typically falls on March 21
+        currentBahaiMonthIndex = when {
+            month == 3 && day >= 21 -> 0  // Bahá
+            month == 4 && day <= 8 -> 0   // Bahá continues
+            month == 4 && day >= 9 && day <= 27 -> 1  // Jalál
+            month == 4 && day >= 28 -> 2  // Jamál
+            month == 5 && day <= 16 -> 2  // Jamál continues
+            month == 5 && day >= 17 -> 3  // 'Aẓamat
+            month == 6 && day <= 4 -> 3   // 'Aẓamat continues
+            month == 6 && day >= 5 && day <= 23 -> 4  // Núr
+            month == 6 && day >= 24 -> 5  // Raḥmat
+            month == 7 && day <= 12 -> 5  // Raḥmat continues
+            month == 7 && day >= 13 && day <= 31 -> 6  // Kalimát
+            month == 8 && day >= 1 && day <= 19 -> 7  // Kamál
+            month == 8 && day >= 20 -> 8  // Asmá'
+            month == 9 && day <= 7 -> 8   // Asmá' continues
+            month == 9 && day >= 8 && day <= 26 -> 9  // 'Izzat
+            month == 9 && day >= 27 -> 10 // Mashíyyat
+            month == 10 && day <= 15 -> 10 // Mashíyyat continues
+            month == 10 && day >= 16 -> 11 // 'Ilm
+            month == 11 && day <= 3 -> 11  // 'Ilm continues
+            month == 11 && day >= 4 && day <= 22 -> 12 // Qudrat
+            month == 11 && day >= 23 -> 13 // Qawl
+            month == 12 && day <= 11 -> 13 // Qawl continues
+            month == 12 && day >= 12 && day <= 30 -> 14 // Masá'il
+            month == 12 && day >= 31 -> 15 // Sharaf
+            month == 1 && day <= 18 -> 15  // Sharaf continues
+            month == 1 && day >= 19 -> 16  // Sulṭán
+            month == 2 && day <= 6 -> 16   // Sulṭán continues
+            month == 2 && day >= 7 && day <= 25 -> 17 // Mulk
+            month == 2 && day >= 26 -> 18  // Ayyám-i-Há
+            month == 3 && day <= 1 -> 18   // Ayyám-i-Há continues
+            month == 3 && day >= 2 && day <= 20 -> 19 // 'Alá' (Fast)
+            else -> 0 // Default to first month
+        }
+    }
+    
+    private fun showLocationMenu() {
+        val locationInfo = LocationService.getCurrentLocationInfo(this)
+        
+        val currentLocation = if (locationInfo != null) {
+            "${locationInfo.cityName} ${if (locationInfo.isManual) "(Manual)" else "(Auto-detected)"}"
+        } else {
+            "No location detected"
+        }
+        
+        val options = arrayOf(
+            "📍 Current Location: $currentLocation",
+            "🔄 Auto-detect Location",
+            "✏️ Set Manual Location",
+            "🌍 Choose from City List",
+            "🌅 Show Sunrise/Sunset Times"
+        )
+        
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("📍 Location & Prayer Times")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showCurrentLocationDetails()
+                    1 -> autoDetectLocation()
+                    2 -> showManualLocationDialog()
+                    3 -> showCitySelectionDialog()
+                    4 -> showLocationBasedTimes()
+                }
+            }
+            .setNegativeButton("Close") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun showCurrentLocationDetails() {
+        val locationInfo = LocationService.getCurrentLocationInfo(this)
+        
+        if (locationInfo != null) {
+            val sunTimes = LocationService.calculateSunTimes(locationInfo.latitude, locationInfo.longitude)
+            
+            val message = buildString {
+                append("📍 Current Location:\n")
+                append("${locationInfo.cityName}\n")
+                append("${if (locationInfo.isManual) "(Manually set)" else "(Auto-detected)"}\n\n")
+                append("📍 Coordinates:\n")
+                append("Latitude: ${String.format("%.4f", locationInfo.latitude)}\n")
+                append("Longitude: ${String.format("%.4f", locationInfo.longitude)}\n\n")
+                append("🌅 Today's Times:\n")
+                append("Sunrise: ${sunTimes.sunrise}\n")
+                append("Sunset: ${sunTimes.sunset}\n\n")
+                if (locationInfo.isManual) {
+                    append("Tap 'Reset to Auto' to use GPS location detection.")
+                } else {
+                    append("Tap 'Set Manual' to override with a custom location.")
+                }
+            }
+            
+            val dialog = android.app.AlertDialog.Builder(this)
+                .setTitle("📍 Location Details")
+                .setMessage(message)
+                .setPositiveButton(if (locationInfo.isManual) "Reset to Auto" else "Set Manual") { _, _ ->
+                    if (locationInfo.isManual) {
+                        LocationService.clearManualLocation(this)
+                        updateCalendarDisplay()
+                        Toast.makeText(this, "Switched to auto-detection", Toast.LENGTH_SHORT).show()
+                    } else {
+                        showManualLocationDialog()
+                    }
+                }
+                .setNegativeButton("Close") { dialog, _ -> dialog.dismiss() }
+                .create()
+            
+            dialog.show()
+        } else {
+            Toast.makeText(this, "No location available. Please enable location services or set manually.", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun autoDetectLocation() {
+        if (!LocationService.hasLocationPermission(this)) {
+            LocationService.requestLocationPermission(this)
+        } else {
+            val location = LocationService.getCurrentLocation(this)
+            if (location != null) {
+                val cityName = LocationService.getCityNameFromCoordinates(this, location.latitude, location.longitude)
+                LocationService.clearManualLocation(this) // Clear any manual override
+                updateCalendarDisplay()
+                Toast.makeText(this, "Location set to: $cityName", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, "Unable to detect location. Please check GPS settings.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun showManualLocationDialog() {
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter city name (e.g., New York, NY)"
+            setPadding(50, 20, 50, 20)
+        }
+        
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("✏️ Set Manual Location")
+            .setMessage("Enter the name of your city for accurate sunrise/sunset times:")
+            .setView(input)
+            .setPositiveButton("Search") { _, _ ->
+                val cityName = input.text.toString().trim()
+                if (cityName.isNotEmpty()) {
+                    searchForCity(cityName)
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun searchForCity(cityName: String) {
+        try {
+            val geocoder = android.location.Geocoder(this, Locale.getDefault())
+            val addresses = geocoder.getFromLocationName(cityName, 5)
+            
+            if (!addresses.isNullOrEmpty()) {
+                if (addresses.size == 1) {
+                    // Only one result, use it directly
+                    val address = addresses[0]
+                    val fullCityName = LocationService.getCityNameFromCoordinates(this, address.latitude, address.longitude)
+                    LocationService.saveManualLocation(this, fullCityName, address.latitude, address.longitude)
+                    updateCalendarDisplay()
+                    Toast.makeText(this, "Location set to: $fullCityName", Toast.LENGTH_LONG).show()
+                } else {
+                    // Multiple results, let user choose
+                    showCityChoiceDialog(addresses)
+                }
+            } else {
+                Toast.makeText(this, "City not found. Please try a different name.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error searching for city. Please try again.", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun showCityChoiceDialog(addresses: List<android.location.Address>) {
+        val cityOptions = addresses.map { address ->
+            LocationService.getCityNameFromCoordinates(this, address.latitude, address.longitude)
+        }.toTypedArray()
+        
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("Choose Your City")
+            .setItems(cityOptions) { _, which ->
+                val selectedAddress = addresses[which]
+                val cityName = cityOptions[which]
+                LocationService.saveManualLocation(this, cityName, selectedAddress.latitude, selectedAddress.longitude)
+                updateCalendarDisplay()
+                Toast.makeText(this, "Location set to: $cityName", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun showCitySelectionDialog() {
+        val majorCities = listOf(
+            "New York, NY" to Pair(40.7128, -74.0060),
+            "Los Angeles, CA" to Pair(34.0522, -118.2437),
+            "Chicago, IL" to Pair(41.8781, -87.6298),
+            "Houston, TX" to Pair(29.7604, -95.3698),
+            "Phoenix, AZ" to Pair(33.4484, -112.0740),
+            "Philadelphia, PA" to Pair(39.9526, -75.1652),
+            "San Antonio, TX" to Pair(29.4241, -98.4936),
+            "San Diego, CA" to Pair(32.7157, -117.1611),
+            "Dallas, TX" to Pair(32.7767, -96.7970),
+            "San Jose, CA" to Pair(37.3382, -121.8863),
+            "Toronto, Canada" to Pair(43.6532, -79.3832),
+            "Vancouver, Canada" to Pair(49.2827, -123.1207),
+            "London, UK" to Pair(51.5074, -0.1278),
+            "Paris, France" to Pair(48.8566, 2.3522),
+            "Sydney, Australia" to Pair(-33.8688, 151.2093),
+            "Other..." to Pair(0.0, 0.0)
+        )
+        
+        val cityNames = majorCities.map { it.first }.toTypedArray()
+        
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("🌍 Choose Your City")
+            .setItems(cityNames) { _, which ->
+                if (which == majorCities.size - 1) {
+                    // "Other..." was selected
+                    showManualLocationDialog()
+                } else {
+                    val (cityName, coords) = majorCities[which]
+                    LocationService.saveManualLocation(this, cityName, coords.first, coords.second)
+                    updateCalendarDisplay()
+                    Toast.makeText(this, "Location set to: $cityName", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        dialog.show()
     }
     
     private fun requestLocationAndUpdateTimes() {
@@ -540,10 +1001,16 @@ class CalendarActivity : AppCompatActivity() {
     
     private fun showLocationBasedTimes() {
         val sunTimes = LocationService.getSunTimesForLocation(this)
+        val locationInfo = LocationService.getCurrentLocationInfo(this)
         
         val message = buildString {
-            append("🌅 Current Location Times:\n\n")
-            append("📍 ${sunTimes.location}\n\n")
+            append("🌅 Prayer & Fast Times:\n\n")
+            append("📍 Location: ${sunTimes.location}\n\n")
+            
+            if (locationInfo != null) {
+                append("📍 Coordinates: ${String.format("%.4f", locationInfo.latitude)}, ${String.format("%.4f", locationInfo.longitude)}\n\n")
+            }
+            
             append("🌅 Sunrise: ${sunTimes.sunrise}\n")
             append("🌅 Sunset: ${sunTimes.sunset}\n\n")
             
@@ -556,17 +1023,27 @@ class CalendarActivity : AppCompatActivity() {
                 append("⏰ Fast Period Active:\n")
                 append("• Begin fast at sunrise: ${sunTimes.sunrise}\n")
                 append("• Break fast at sunset: ${sunTimes.sunset}\n\n")
+                append("The Bahá'í Fast is observed from sunrise to sunset during the month of 'Alá' (March 2-20).\n\n")
             }
             
-            append("These times will be used for Feast days and holy day observances.")
+            append("These times are calculated for your specific location and will be used for Feast days and holy day observances.\n\n")
+            
+            if (locationInfo?.isManual == true) {
+                append("💡 You're using a manually set location. Tap 'Change Location' to modify it.")
+            } else {
+                append("💡 Location auto-detected from GPS. Tap 'Change Location' to set manually.")
+            }
         }
         
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle("📍 Location-Based Times")
             .setMessage(message)
-            .setPositiveButton("Update Calendar") { dialog, _ -> 
+            .setPositiveButton("Change Location") { _, _ -> 
+                showLocationMenu()
+            }
+            .setNeutralButton("Update Calendar") { _, _ -> 
                 updateHolyDaysList() // Refresh with location-based times
-                dialog.dismiss() 
+                Toast.makeText(this, "Calendar updated with current location times", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Close") { dialog, _ -> dialog.dismiss() }
             .create()

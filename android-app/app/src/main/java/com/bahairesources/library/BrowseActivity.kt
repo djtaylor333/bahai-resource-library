@@ -111,7 +111,7 @@ class BrowseActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 12f
             cardElevation = 6f
-            setCardBackgroundColor(Color.WHITE)
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
             isClickable = true
             isFocusable = true
         }
@@ -135,7 +135,7 @@ class BrowseActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = category.name
             textSize = 18f
-            setTextColor(Color.parseColor("#212121"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#212121"))
             setPadding(0, 0, 0, 8)
         }
         
@@ -149,13 +149,13 @@ class BrowseActivity : AppCompatActivity() {
         val descView = TextView(this).apply {
             text = category.description
             textSize = 14f
-            setTextColor(Color.parseColor("#757575"))
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
         }
         
         val arrowView = TextView(this).apply {
             text = "›"
             textSize = 28f
-            setTextColor(Color.parseColor("#CCCCCC"))
+            setTextColor(if (isDarkMode) Color.parseColor("#666666") else Color.parseColor("#CCCCCC"))
             setPadding(10, 0, 0, 0)
         }
         

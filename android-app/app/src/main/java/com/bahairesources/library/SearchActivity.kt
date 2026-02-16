@@ -106,14 +106,15 @@ class SearchActivity : AppCompatActivity() {
             hint = "Search documents, authors, topics..."
             textSize = 16f
             setPadding(20, 20, 20, 20)
-            setBackgroundColor(Color.WHITE)
-            setTextColor(Color.parseColor("#333333"))
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            setHintTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#999999"))
         }
         
         val searchCard = CardView(this).apply {
             radius = 8f
             cardElevation = 4f
-            setCardBackgroundColor(Color.WHITE)
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
             addView(searchInput)
         }
         
@@ -121,7 +122,7 @@ class SearchActivity : AppCompatActivity() {
         resultsCount = TextView(this).apply {
             text = "Enter search terms to find documents"
             textSize = 14f
-            setTextColor(Color.parseColor("#666666"))
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
             setPadding(10, 20, 10, 10)
         }
         
@@ -188,7 +189,7 @@ class SearchActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 8f
             cardElevation = 3f
-            setCardBackgroundColor(Color.WHITE)
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
             isClickable = true
             isFocusable = true
         }
@@ -201,21 +202,21 @@ class SearchActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = doc.title
             textSize = 16f
-            setTextColor(Color.parseColor("#1976D2"))
+            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
             setPadding(0, 0, 0, 8)
         }
         
         val categoryView = TextView(this).apply {
             text = "📂 ${doc.category}"
             textSize = 12f
-            setTextColor(Color.parseColor("#FF9800"))
+            setTextColor(if (isDarkMode) Color.parseColor("#FFB74D") else Color.parseColor("#FF9800"))
             setPadding(0, 0, 0, 8)
         }
         
         val descView = TextView(this).apply {
             text = doc.description
             textSize = 14f
-            setTextColor(Color.parseColor("#666666"))
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
         }
         
         layout.addView(titleView)

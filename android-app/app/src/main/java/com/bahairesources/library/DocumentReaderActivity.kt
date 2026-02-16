@@ -9,6 +9,13 @@ import androidx.cardview.widget.CardView
 import android.view.View
 import java.io.InputStreamReader
 import android.content.Intent
+import android.net.Uri
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.text.util.Linkify
 
 class DocumentReaderActivity : AppCompatActivity() {
     
@@ -62,7 +69,8 @@ class DocumentReaderActivity : AppCompatActivity() {
         
         // Document text
         documentTextView = TextView(this).apply {
-            text = loadDocumentContent(fileName)
+            val contentText = loadDocumentContent(fileName)
+            setTextWithClickableUrls(this, contentText)
             textSize = currentTextSize
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
             setLineSpacing(8f, 1.5f)
@@ -227,6 +235,38 @@ class DocumentReaderActivity : AppCompatActivity() {
         
         headerCard.addView(headerLayout)
         return headerCard
+    }
+    
+    private fun setTextWithClickableUrls(textView: TextView, text: String) {
+        val spannableString = SpannableString(text)
+        
+        // Find all URLs in the text and make them clickable
+        val urlPattern = Regex("https?://[^\\s]+|bahai\\.org(?:/[^\\s]*)?")
+        val matches = urlPattern.findAll(text)
+        
+        for (match in matches) {
+            val start = match.range.first
+            val end = match.range.last + 1
+            val url = match.value
+            
+            val clickableSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    try {
+                        val fullUrl = if (url.startsWith("http")) url else "https://$url"
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fullUrl))
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this@DocumentReaderActivity, "Could not open link", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            
+            spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spannableString.setSpan(ForegroundColorSpan(Color.parseColor("#4285F4")), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
     
     private fun loadDocumentContent(fileName: String): String {

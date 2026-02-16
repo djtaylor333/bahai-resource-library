@@ -8,6 +8,12 @@ import android.graphics.Typeface
 import androidx.cardview.widget.CardView
 import android.view.View
 import android.content.Intent
+import android.net.Uri
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
 
 class PrayerReaderActivity : AppCompatActivity() {
     
@@ -70,7 +76,8 @@ class PrayerReaderActivity : AppCompatActivity() {
         
         // Sample note about official sources
         val noteView = TextView(this).apply {
-            text = "This is a sample prayer structure. For complete official prayers, please visit bahai.org/library or consult authorized Bahá'í publications."
+            val noteText = "This is a sample prayer structure. For complete official prayers, please visit bahai.org/library or consult authorized Bahá'í publications."
+            setTextWithClickableUrls(this, noteText)
             textSize = currentFontSize - 2f
             setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#666666"))
             setBackgroundColor(if (isDarkMode) Color.parseColor("#2C2C2C") else Color.parseColor("#F5F5F5"))
@@ -230,5 +237,37 @@ class PrayerReaderActivity : AppCompatActivity() {
     private fun toggleMode() {
         isDarkMode = !isDarkMode
         Toast.makeText(this, "${if (isDarkMode) "Dark" else "Light"} mode - full implementation coming soon!", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun setTextWithClickableUrls(textView: TextView, text: String) {
+        val spannableString = SpannableString(text)
+        
+        // Find all URLs in the text and make them clickable
+        val urlPattern = Regex("https?://[^\\s]+|bahai\\.org(?:/[^\\s]*)?")
+        val matches = urlPattern.findAll(text)
+        
+        for (match in matches) {
+            val start = match.range.first
+            val end = match.range.last + 1
+            val url = match.value
+            
+            val clickableSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    try {
+                        val fullUrl = if (url.startsWith("http")) url else "https://$url"
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fullUrl))
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this@PrayerReaderActivity, "Could not open link", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            
+            spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+            spannableString.setSpan(ForegroundColorSpan(Color.parseColor("#4285F4")), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 }

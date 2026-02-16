@@ -12,6 +12,14 @@ object SettingsManager {
     private const val KEY_SHOW_OTHER_RELIGIONS = "show_other_religions"
     private const val KEY_AUTO_LOCATION = "auto_location"
     
+    // Religious Holiday Keys
+    private const val KEY_SHOW_CHRISTIAN_HOLIDAYS = "show_christian_holidays"
+    private const val KEY_SHOW_ISLAMIC_HOLIDAYS = "show_islamic_holidays"
+    private const val KEY_SHOW_JEWISH_HOLIDAYS = "show_jewish_holidays"
+    private const val KEY_SHOW_HINDU_HOLIDAYS = "show_hindu_holidays"
+    private const val KEY_SHOW_BUDDHIST_HOLIDAYS = "show_buddhist_holidays"
+    private const val KEY_SHOW_SECULAR_HOLIDAYS = "show_secular_holidays"
+    
     // Font sizes
     const val FONT_SMALL = 14f
     const val FONT_MEDIUM = 16f
@@ -92,5 +100,63 @@ object SettingsManager {
     
     fun resetToDefaults(context: Context) {
         getPrefs(context).edit().clear().apply()
+    }
+    
+    // Religious Holiday Settings
+    fun getShowChristianHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_CHRISTIAN_HOLIDAYS, false)
+    }
+    
+    fun setShowChristianHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_CHRISTIAN_HOLIDAYS, show).apply()
+    }
+    
+    fun getShowIslamicHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_ISLAMIC_HOLIDAYS, false)
+    }
+    
+    fun setShowIslamicHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_ISLAMIC_HOLIDAYS, show).apply()
+    }
+    
+    fun getShowJewishHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_JEWISH_HOLIDAYS, false)
+    }
+    
+    fun setShowJewishHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_JEWISH_HOLIDAYS, show).apply()
+    }
+    
+    fun getShowHinduHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_HINDU_HOLIDAYS, false)
+    }
+    
+    fun setShowHinduHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_HINDU_HOLIDAYS, show).apply()
+    }
+    
+    fun getShowBuddhistHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_BUDDHIST_HOLIDAYS, false)
+    }
+    
+    fun setShowBuddhistHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_BUDDHIST_HOLIDAYS, show).apply()
+    }
+    
+    fun getShowSecularHolidays(context: Context): Boolean {
+        return getPrefs(context).getBoolean(KEY_SHOW_SECULAR_HOLIDAYS, true) // Default to true for national holidays
+    }
+    
+    fun setShowSecularHolidays(context: Context, show: Boolean) {
+        getPrefs(context).edit().putBoolean(KEY_SHOW_SECULAR_HOLIDAYS, show).apply()
+    }
+    
+    fun getAnyReligiousHolidaysEnabled(context: Context): Boolean {
+        return getShowChristianHolidays(context) || 
+               getShowIslamicHolidays(context) ||
+               getShowJewishHolidays(context) ||
+               getShowHinduHolidays(context) ||
+               getShowBuddhistHolidays(context) ||
+               getShowSecularHolidays(context)
     }
 }

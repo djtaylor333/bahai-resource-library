@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.7.0 - Universal Settings & Enhanced Features!"
+            text = "v0.8.0 - Revolutionary Calendar & Religious Inclusivity!"
             textSize = SettingsManager.getFontSize(this@MainActivity)
             setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
             setPadding(0, 0, 0, 20)
@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         val toggleButton = Button(this).apply {
-            text = "⚙️ Settings"
+            text = "🎨 Theme"
             textSize = SettingsManager.getFontSize(this@MainActivity) - 2f
             setBackgroundColor(if (isDarkMode) Color.parseColor("#4CAF50") else Color.parseColor("#2E7D32"))
             setTextColor(Color.WHITE)
@@ -188,10 +188,12 @@ class MainActivity : AppCompatActivity() {
         
         val feastBtn = createNavButton("🌙", "Feasts") { showFeastInterface() }
         val linksBtn = createNavButton("🔗", "Links") { showLinksInterface() }
+        val settingsBtn = createNavButton("⚙️", "Settings") { showSettingsInterface() }
         val aboutBtn = createNavButton("ℹ️", "About") { showAboutInterface() }
         
         featuresRow.addView(feastBtn)
         featuresRow.addView(linksBtn)
+        featuresRow.addView(settingsBtn)
         featuresRow.addView(aboutBtn)
         
         navLayout.addView(mainNavRow)
@@ -210,6 +212,12 @@ class MainActivity : AppCompatActivity() {
             "Access authoritative Bahá'í websites and institutions",
             "#00796B"
         ) { showLinksInterface() }
+        
+        val settingsCard = createFeatureCard(
+            "⚙️ Settings",
+            "Customize theme, font size, religious holidays, and app preferences",
+            "#FF6F00"
+        ) { showSettingsInterface() }
         
         val aboutCard = createFeatureCard(
             "ℹ️ About",
@@ -234,6 +242,8 @@ class MainActivity : AppCompatActivity() {
         layout.addView(feastCard)
         layout.addView(createSpacing(15))
         layout.addView(linksCard)
+        layout.addView(createSpacing(15))
+        layout.addView(settingsCard)
         layout.addView(createSpacing(15))
         layout.addView(aboutCard)
         layout.addView(createSpacing(20))
@@ -422,6 +432,11 @@ class MainActivity : AppCompatActivity() {
     
     private fun showAboutInterface() {
         val intent = Intent(this, AboutActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showSettingsInterface() {
+        val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
     }
     

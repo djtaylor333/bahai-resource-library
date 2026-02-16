@@ -264,11 +264,11 @@ class AboutActivity : AppCompatActivity() {
         
         val versionText = TextView(this).apply {
             text = """
-                Version: 0.7.0 "Comprehensive Edition"
-                Release Date: December 2024
-                Build: Enhanced Community Features
+                Version: 0.8.0 "Revolutionary Edition"
+                Release Date: February 2026
+                Build: Dual Calendar & Religious Inclusivity
                 
-                📊 What's New in v0.7.0:
+                📊 What's New in v0.8.0:
                 • Universal dark mode support
                 • Comprehensive settings system  
                 • Vastly expanded prayer collection (80+ prayers)

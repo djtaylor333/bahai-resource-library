@@ -262,7 +262,7 @@ class BookmarksActivity : AppCompatActivity() {
         val card = CardView(this).apply {
             radius = 8f
             cardElevation = 4f
-            setCardBackgroundColor(Color.WHITE)
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.WHITE)
             isClickable = true
             isFocusable = true
         }
@@ -279,14 +279,14 @@ class BookmarksActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = bookmark.documentTitle
             textSize = 16f
-            setTextColor(Color.parseColor("#1976D2"))
+            setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
         
         val timeView = TextView(this).apply {
             text = getRelativeTime(bookmark.timestamp)
             textSize = 12f
-            setTextColor(Color.parseColor("#999999"))
+            setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#999999"))
         }
         
         headerLayout.addView(titleView)
@@ -295,14 +295,14 @@ class BookmarksActivity : AppCompatActivity() {
         val locationView = TextView(this).apply {
             text = "📍 ${bookmark.location} • ${bookmark.category}"
             textSize = 12f
-            setTextColor(Color.parseColor("#FF9800"))
+            setTextColor(if (isDarkMode) Color.parseColor("#FFB74D") else Color.parseColor("#FF9800"))
             setPadding(0, 5, 0, 10)
         }
         
         val contentView = TextView(this).apply {
             text = bookmark.content
             textSize = 14f
-            setTextColor(Color.parseColor("#333333"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
             maxLines = 3
             ellipsize = android.text.TextUtils.TruncateAt.END
         }
