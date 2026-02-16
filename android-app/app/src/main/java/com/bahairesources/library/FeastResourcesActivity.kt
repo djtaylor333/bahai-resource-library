@@ -167,13 +167,50 @@ class FeastResourcesActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
         val month = calendar.get(Calendar.MONTH) + 1
         val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val year = calendar.get(Calendar.YEAR)
         
-        // Simplified logic - in a real app this would use proper Bahá'í calendar calculations
+        // Complete Bahá'í calendar mapping for 2026-2027
         return when {
-            (month == 3 && day >= 21) || (month == 4 && day <= 8) -> feastData[0] // Bahá
-            (month == 4 && day >= 9 && day <= 27) -> feastData[1] // Jalál
-            (month == 4 && day >= 28) || (month == 5 && day <= 16) -> feastData[2] // Jamál
-            else -> feastData[0] // Default to Bahá
+            // Bahá: March 21 - April 8
+            (month == 3 && day >= 21) || (month == 4 && day <= 8) -> feastData[0]
+            // Jalál: April 9 - April 27
+            (month == 4 && day >= 9 && day <= 27) -> feastData[1]
+            // Jamál: April 28 - May 16
+            (month == 4 && day >= 28) || (month == 5 && day <= 16) -> feastData[2]
+            // 'Aẓamat: May 17 - June 4
+            (month == 5 && day >= 17) || (month == 6 && day <= 4) -> feastData[3]
+            // Núr: June 5 - June 23
+            (month == 6 && day >= 5 && day <= 23) -> feastData[4]
+            // Raḥmat: June 24 - July 12
+            (month == 6 && day >= 24) || (month == 7 && day <= 12) -> feastData[5]
+            // Kalimát: July 13 - July 31
+            (month == 7 && day >= 13 && day <= 31) -> feastData[6]
+            // Kamál: August 1 - August 19
+            (month == 8 && day >= 1 && day <= 19) -> feastData[7]
+            // Asmá': August 20 - September 7
+            (month == 8 && day >= 20) || (month == 9 && day <= 7) -> feastData[8]
+            // 'Izzat: September 8 - September 26
+            (month == 9 && day >= 8 && day <= 26) -> feastData[9]
+            // Mashíyyat: September 27 - October 15
+            (month == 9 && day >= 27) || (month == 10 && day <= 15) -> feastData[10]
+            // 'Ilm: October 16 - November 3
+            (month == 10 && day >= 16) || (month == 11 && day <= 3) -> feastData[11]
+            // Qudrat: November 4 - November 22
+            (month == 11 && day >= 4 && day <= 22) -> feastData[12]
+            // Qawl: November 23 - December 11
+            (month == 11 && day >= 23) || (month == 12 && day <= 11) -> feastData[13]
+            // Masá'il: December 12 - December 30
+            (month == 12 && day >= 12 && day <= 30) -> feastData[14]
+            // Sharaf: December 31 - January 18 (spans years)
+            (month == 12 && day == 31) || (month == 1 && day <= 18) -> feastData[15]
+            // Sulṭán: January 19 - February 6
+            (month == 1 && day >= 19) || (month == 2 && day <= 6) -> feastData[16]
+            // Mulk: February 7 - February 25
+            (month == 2 && day >= 7 && day <= 25) -> feastData[17]
+            // 'Alá' (Fast): March 2 - March 20
+            (month == 3 && day >= 2 && day <= 20) -> feastData[18]
+            // Default fallback
+            else -> feastData[0] // Bahá
         }
     }
     

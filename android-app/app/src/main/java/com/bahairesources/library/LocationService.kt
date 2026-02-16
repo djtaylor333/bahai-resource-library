@@ -391,26 +391,37 @@ object LocationService {
         val calendar = Calendar.getInstance().apply { time = date }
         val dayOfYear = calendar.get(Calendar.DAY_OF_YEAR)
         
-        // Simplified sunrise/sunset calculation using the sunrise equation
-        val P = asin(0.39795 * cos(0.98563 * (dayOfYear - 173) * PI / 180))
-        val argument = -tan(latitude * PI / 180) * tan(P)
-        val timeCorrection = 12 * acos(argument) / PI
+        // Improved sunrise/sunset calculation
+        val declination = -23.45 * cos(2 * PI * (dayOfYear + 10) / 365.25)
+        val declinationRad = declination * PI / 180
+        val latitudeRad = latitude * PI / 180
         
-        // Calculate sunrise and sunset times
-        val sunriseDecimal = 12 - timeCorrection - longitude / 15
-        val sunsetDecimal = 12 + timeCorrection - longitude / 15
+        val hourAngle = acos(-tan(latitudeRad) * tan(declinationRad)) * 180 / PI
+        
+        // Calculate sunrise and sunset in decimal hours (UTC)
+        val sunriseUTC = 12 - hourAngle / 15
+        val sunsetUTC = 12 + hourAngle / 15
+        
+        // Apply longitude correction to get local solar time
+        val longitudeCorrection = longitude / 15.0
+        val sunriseLocal = sunriseUTC - longitudeCorrection
+        val sunsetLocal = sunsetUTC - longitudeCorrection
         
         // Convert to hours and minutes
         fun formatTime(decimal: Double): String {
-            val hours = decimal.toInt()
-            val minutes = ((decimal - hours) * 60).toInt()
-            val adjustedHours = if (hours < 0) hours + 24 else if (hours >= 24) hours - 24 else hours
-            return String.format("%02d:%02d", adjustedHours, minutes)
+            var adjustedDecimal = decimal
+            // Ensure time is within 0-24 hours
+            while (adjustedDecimal < 0) adjustedDecimal += 24
+            while (adjustedDecimal >= 24) adjustedDecimal -= 24
+            
+            val hours = adjustedDecimal.toInt()
+            val minutes = ((adjustedDecimal - hours) * 60).toInt()
+            return String.format("%02d:%02d", hours, minutes)
         }
         
         return SunTimes(
-            sunrise = formatTime(sunriseDecimal),
-            sunset = formatTime(sunsetDecimal),
+            sunrise = formatTime(sunriseLocal),
+            sunset = formatTime(sunsetLocal),
             location = "Lat: ${String.format("%.2f", latitude)}, Lon: ${String.format("%.2f", longitude)}"
         )
     }

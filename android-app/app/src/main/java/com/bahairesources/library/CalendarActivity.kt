@@ -585,7 +585,8 @@ class CalendarActivity : AppCompatActivity() {
                     // Check if this date is during the Fast period (March 2-20, 2026)
                     val fastPeriod = isFastingDay(date)
                     if (fastPeriod != null) {
-                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        val dateObj = parseDateString(date)
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity, dateObj)
                         append("\n⏰ Fast Times for Today:\n")
                         append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
                         append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
@@ -649,10 +650,11 @@ class CalendarActivity : AppCompatActivity() {
                     val fastPeriod = isFastingDay(date)
                     if (fastPeriod != null) {
                         append("││││││││││││││││││││\n\n")
-                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        val dateObj = parseDateString(date)
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity, dateObj)
                         append("⏰ Fast Times for Today:\n")
-                    append("Sunrise: ${sunTimes.sunrise}\n")
-                    append("Sunset: ${sunTimes.sunset}\n\n")
+                        append("Sunrise: ${sunTimes.sunrise}\n")
+                        append("Sunset: ${sunTimes.sunset}\n\n")
                         when (fastPeriod) {
                             "first" -> append("📿 First Day of the 19-Day Fast begins today.")
                             "last" -> append("📿 Final Day of the Fast - Naw-Rúz begins at sunset!")
@@ -682,7 +684,8 @@ class CalendarActivity : AppCompatActivity() {
                     // Check if this date is during the Fast period
                     val fastPeriod = isFastingDay(date)
                     if (fastPeriod != null) {
-                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        val dateObj = parseDateString(date)
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity, dateObj)
                         append("⏰ Fast Times for Today:\n")
                         append("Sunrise: ${sunTimes.sunrise}\n")
                         append("Sunset: ${sunTimes.sunset}\n\n")
@@ -1395,6 +1398,16 @@ class CalendarActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         coroutineScope.cancel() // Clean up coroutines
+    }
+    
+    // Helper function to parse date string to Date object
+    private fun parseDateString(dateString: String): Date {
+        return try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            sdf.parse(dateString) ?: Date()
+        } catch (e: Exception) {
+            Date() // Fallback to current date if parsing fails
+        }
     }
 }
 

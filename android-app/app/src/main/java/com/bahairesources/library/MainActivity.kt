@@ -104,53 +104,7 @@ class MainActivity : AppCompatActivity() {
         headerCard.addView(headerLayout)
         
         // Theme Toggle Section - Using Material Design components
-        val themeCard = MaterialCardView(this).apply {
-            radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
-            cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#4A4458") else Color.parseColor("#E8DEF8"))
-            isClickable = true
-            isFocusable = true
-            useCompatPadding = true
-        }
-        
-        val themeLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            val padding = resources.getDimensionPixelSize(R.dimen.card_content_padding)
-            setPadding(padding, padding, padding, padding)
-            gravity = android.view.Gravity.CENTER_VERTICAL
-        }
-        
-        val themeIcon = TextView(this).apply {
-            text = if (isDarkMode) "🌙" else "☀️"
-            setTextAppearance(R.style.TextAppearance_App_TitleMedium)
-            val iconMargin = resources.getDimensionPixelSize(R.dimen.spacing_md)
-            setPadding(0, 0, iconMargin, 0)
-        }
-        
-        val themeText = TextView(this).apply {
-            text = if (isDarkMode) "Dark Mode Active" else "Light Mode Active"
-            setTextAppearance(R.style.TextAppearance_App_BodyLarge)
-            setTextColor(if (isDarkMode) Color.parseColor("#E8DEF8") else Color.parseColor("#1D192B"))
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        
-        val toggleButton = MaterialButton(this).apply {
-            text = "⚙️ Settings"
-            setTextAppearance(R.style.TextAppearance_App_LabelLarge)
-            cornerRadius = resources.getDimensionPixelSize(R.dimen.button_corner_radius)
-            val buttonPadding = resources.getDimensionPixelSize(R.dimen.button_padding_horizontal)
-            setPadding(buttonPadding, 0, buttonPadding, 0)
-            minimumHeight = resources.getDimensionPixelSize(R.dimen.min_touch_target)
-            setOnClickListener {
-                val intent = Intent(this@MainActivity, SettingsActivity::class.java)
-                startActivity(intent)
-            }
-        }
-        
-        themeLayout.addView(themeIcon)
-        themeLayout.addView(themeText)
-        themeLayout.addView(toggleButton)
-        themeCard.addView(themeLayout)
+        // Remove theme display card - dark mode toggle moved to navigation
         
         // Search Section
         val searchCard = createFeatureCard(
@@ -227,12 +181,17 @@ class MainActivity : AppCompatActivity() {
         val linksBtn = createNavButton("🔗", "Links") { showLinksInterface() }
         val settingsBtn = createNavButton("⚙️", "Settings") { showSettingsInterface() }
         val aboutBtn = createNavButton("ℹ️", "About") { showAboutInterface() }
+        val themeBtn = createNavButton(
+            if (isDarkMode) "🌙" else "☀️", 
+            if (isDarkMode) "Dark" else "Light"
+        ) { toggleDarkMode() }
         
         featuresRow.addView(feastBtn)
         featuresRow.addView(researchBtn)
         featuresRow.addView(linksBtn)
         featuresRow.addView(settingsBtn)
         featuresRow.addView(aboutBtn)
+        featuresRow.addView(themeBtn)
         
         navLayout.addView(mainNavRow)
         navLayout.addView(featuresRow)
@@ -265,7 +224,7 @@ class MainActivity : AppCompatActivity() {
         
         // Assemble the layout with proper Material Design spacing
         layout.addView(headerCard)
-        layout.addView(themeCard)
+        // Theme card removed - dark mode toggle moved to navigation
         
         // Add navigation card back (was missing)
         layout.addView(navigationCard)
@@ -310,7 +269,8 @@ class MainActivity : AppCompatActivity() {
         val card = MaterialCardView(this).apply {
             radius = resources.getDimensionPixelSize(R.dimen.card_corner_radius).toFloat()
             cardElevation = resources.getDimensionPixelSize(R.dimen.card_elevation_resting).toFloat()
-            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1D1B20") else Color.parseColor("#FFFFFF"))
+            // Fixed contrast: Dark mode uses darker background, light mode stays white
+            setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2A2A2A") else Color.parseColor("#FFFFFF"))
             isClickable = true
             isFocusable = true
             useCompatPadding = true
@@ -353,16 +313,26 @@ class MainActivity : AppCompatActivity() {
         val titleView = TextView(this).apply {
             text = title
             setTextAppearance(R.style.TextAppearance_App_TitleMedium)
+            // Enhanced contrast: Pure white on dark, pure black on light
             setTextColor(if (isDarkMode) Color.parseColor("#FFFFFF") else Color.parseColor("#000000"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
             setPadding(0, 0, 0, bottomMargin)
+            // Add text shadow for better readability in dark mode
+            if (isDarkMode) {
+                setShadowLayer(2f, 1f, 1f, Color.parseColor("#AA000000"))
+            }
         }
         
         val descView = TextView(this).apply {
             text = description
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            // Enhanced contrast for description text
+            setTextColor(if (isDarkMode) Color.parseColor("#F0F0F0") else Color.parseColor("#222222"))
             maxLines = 2
+            // Add subtle text shadow for better readability in dark mode
+            if (isDarkMode) {
+                setShadowLayer(1f, 0.5f, 0.5f, Color.parseColor("#88000000"))
+            }
         }
         
         textLayout.addView(titleView)
@@ -495,8 +465,12 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun showResearchInterface() {
-        val intent = Intent(this, ResearchDocumentsActivity::class.java)
-        startActivity(intent)
+        try {
+            val intent = Intent(this, ResearchDocumentsActivity::class.java)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Research feature temporarily unavailable. Please try again later.", Toast.LENGTH_LONG).show()
+        }
     }
     
     private fun showLinksInterface() {
@@ -522,6 +496,13 @@ class MainActivity : AppCompatActivity() {
             "• Night mode\n" +
             "• Font size adjustment\n" +
             "• Reading progress tracking")
+    }
+    
+    private fun toggleDarkMode() {
+        // Toggle the dark mode setting
+        SettingsManager.setDarkMode(this, !isDarkMode)
+        // Recreate the activity to apply the new theme
+        recreate()
     }
     
     private fun showFeatureDialog(title: String, message: String) {

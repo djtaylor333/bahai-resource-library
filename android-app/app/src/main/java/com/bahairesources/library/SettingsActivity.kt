@@ -682,8 +682,29 @@ class SettingsActivity : AppCompatActivity() {
         
         val location = input?.text?.toString()?.trim() ?: ""
         if (location.isNotEmpty()) {
+            // Save to SettingsManager for UI display
             SettingsManager.setManualLocation(this, location)
-            Toast.makeText(this, "Location saved: $location", Toast.LENGTH_SHORT).show()
+            
+            // Geocode the location and save to LocationService for actual functionality
+            try {
+                val geocoder = android.location.Geocoder(this, java.util.Locale.getDefault())
+                val addresses = geocoder.getFromLocationName(location, 1)
+                
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    LocationService.saveManualLocation(this, location, address.latitude, address.longitude)
+                    Toast.makeText(this, "Location saved: $location", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Fallback: Save just the name with default coordinates
+                    LocationService.saveManualLocation(this, location, 40.7128, -74.0060) // NYC default
+                    Toast.makeText(this, "Location saved: $location (using approximate coordinates)", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                // Fallback: Save just the name with default coordinates
+                LocationService.saveManualLocation(this, location, 40.7128, -74.0060) // NYC default
+                Toast.makeText(this, "Location saved: $location (geocoding failed, using default coordinates)", Toast.LENGTH_LONG).show()
+            }
+            
             recreate() // Refresh the settings screen
             dialog.dismiss()
         } else {
