@@ -320,7 +320,67 @@ This text is available from official Bahá'í sources. For complete authentic te
     }
     
     private fun addBookmark() {
-        Toast.makeText(this, "Bookmark added! (Feature in development)", Toast.LENGTH_SHORT).show()
+        val currentDocument = intent.getStringExtra("document_filename") ?: ""
+        val documentId = currentDocument.replace(".txt", "").replace("-", "_")
+        
+        if (currentDocument.isEmpty()) {
+            Toast.makeText(this, "No document loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Enhanced bookmark dialog
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("📑 Add Bookmark")
+            .setMessage("Add a bookmark at current position")
+            
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 30, 50, 30)
+        }
+        
+        val noteInput = EditText(this).apply {
+            hint = "Add optional note..."
+            textSize = currentFontSize
+            setPadding(15, 15, 15, 15)
+            setBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#F5F5F5"))
+            setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+        }
+        
+        layout.addView(TextView(this).apply {
+            text = "Document: ${intent.getStringExtra("document_title")}"
+            textSize = currentFontSize - 1f
+            setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+            setPadding(0, 0, 0, 15)
+        })
+        
+        layout.addView(noteInput)
+        
+        dialog.setView(layout)
+            .setPositiveButton("📌 Save Bookmark") { _, _ ->
+                val note = noteInput.text.toString().trim()
+                val selectedText = getSelectedText() ?: "Bookmark at current position"
+                val position = 0 // In a real implementation, get scroll position
+                
+                saveBookmark(documentId, position, selectedText, note)
+                Toast.makeText(this, "✅ Bookmark saved!", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+    
+    private fun saveBookmark(documentId: String, position: Int, text: String, note: String) {
+        try {
+            val pdfManager = PDFDocumentManager(this)
+            pdfManager.addBookmark(documentId, position, text, note)
+        } catch (e: Exception) {
+            Toast.makeText(this, "❌ Error saving bookmark: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun getSelectedText(): String? {
+        // In a real implementation, this would get the currently selected text
+        // For demo purposes, return a sample
+        return "Sample selected text for bookmark"
     }
     
     private fun shareDocument() {
@@ -363,6 +423,25 @@ This text is available from official Bahá'í sources. For complete authentic te
     }
     
     private fun performDocumentSearch(searchTerm: String) {
+        try {
+            val currentDocument = intent.getStringExtra("document_filename") ?: ""
+            val documentId = currentDocument.replace(".txt", "").replace("-", "_")
+            
+            if (currentDocument.isNotEmpty()) {
+                // Use enhanced PDF Document Manager search
+                val pdfManager = PDFDocumentManager(this)
+                val searchResults = pdfManager.searchInDocument(documentId, searchTerm)
+                
+                if (searchResults.isNotEmpty()) {
+                    showEnhancedSearchResults(searchTerm, searchResults)
+                    return
+                }
+            }
+        } catch (e: Exception) {
+            // Fall back to basic search on error
+        }
+        
+        // Fallback to basic text search
         val documentText = documentTextView.text.toString()
         val lowercaseText = documentText.lowercase()
         val lowercaseTerm = searchTerm.lowercase()
@@ -388,6 +467,81 @@ This text is available from official Bahá'í sources. For complete authentic te
         } else {
             showSearchResults(searchTerm, matches)
         }
+    }
+    
+    private fun showEnhancedSearchResults(searchTerm: String, results: List<SearchResult>) {
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("🔍 Search Results for '$searchTerm'")
+            .setMessage("Found ${results.size} matches:")
+            .create()
+        
+        val scrollView = ScrollView(this)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(20, 20, 20, 20)
+        }
+        
+        results.take(10).forEachIndexed { index, result ->
+            val resultCard = CardView(this).apply {
+                radius = 8f
+                cardElevation = 2f
+                setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#F5F5F5"))
+                setPadding(15, 15, 15, 15)
+                isClickable = true
+                setOnClickListener {
+                    dialog.dismiss()
+                    highlightTextAtPosition(result.position, searchTerm)
+                }
+            }
+            
+            val resultLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(15, 15, 15, 15)
+            }
+            
+            val matchNumber = TextView(this).apply {
+                text = "📍 Line ${result.line} - Match ${index + 1}:"
+                textSize = currentFontSize - 1f
+                setTextColor(if (isDarkMode) Color.parseColor("#81C784") else Color.parseColor("#4CAF50"))
+                setPadding(0, 0, 0, 8)
+            }
+            
+            val contextText = TextView(this).apply {
+                text = "...${result.context.trim()}..."
+                textSize = currentFontSize
+                setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
+            }
+            
+            val actionHint = TextView(this).apply {
+                text = "💡 Tap to jump to this location"
+                textSize = currentFontSize - 2f
+                setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
+                setPadding(0, 5, 0, 0)
+            }
+            
+            resultLayout.addView(matchNumber)
+            resultLayout.addView(contextText)
+            resultLayout.addView(actionHint)
+            resultCard.addView(resultLayout)
+            layout.addView(resultCard)
+            layout.addView(View(this).apply { 
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 10)
+            })
+        }
+        
+        if (results.size > 10) {
+            val moreText = TextView(this).apply {
+                text = "... and ${results.size - 10} more matches"
+                textSize = currentFontSize - 1f
+                setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+                setPadding(10, 20, 10, 0)
+            }
+            layout.addView(moreText)
+        }
+        
+        scrollView.addView(layout)
+        dialog.setView(scrollView)
+        dialog.show()
     }
     
     private fun showSearchResults(searchTerm: String, matches: List<Pair<Int, String>>) {
@@ -461,6 +615,118 @@ This text is available from official Bahá'í sources. For complete authentic te
     }
     
     private fun showDocumentBookmarks() {
-        Toast.makeText(this, "📑 Document bookmarks feature in development", Toast.LENGTH_SHORT).show()
+        try {
+            val currentDocument = intent.getStringExtra("document_filename") ?: ""
+            val documentId = currentDocument.replace(".txt", "").replace("-", "_")
+            
+            if (currentDocument.isEmpty()) {
+                Toast.makeText(this, "No document loaded", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            val pdfManager = PDFDocumentManager(this)
+            val bookmarks = pdfManager.getBookmarks(documentId)
+            
+            if (bookmarks.isEmpty()) {
+                Toast.makeText(this, "📑 No bookmarks found. Add some by tapping the bookmark button!", Toast.LENGTH_LONG).show()
+                return
+            }
+            
+            val dialog = android.app.AlertDialog.Builder(this)
+                .setTitle("📚 Document Bookmarks")
+                .setMessage("${bookmarks.size} bookmark(s) found:")
+                .create()
+            
+            val scrollView = ScrollView(this)
+            val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(20, 20, 20, 20)
+            }
+            
+            bookmarks.forEach { bookmark ->
+                val bookmarkCard = CardView(this).apply {
+                    radius = 8f
+                    cardElevation = 3f
+                    setCardBackgroundColor(if (isDarkMode) Color.parseColor("#2D2D2D") else Color.parseColor("#FFF8E1"))
+                    setPadding(15, 15, 15, 15)
+                    isClickable = true
+                    setOnClickListener {
+                        dialog.dismiss()
+                        highlightTextAtPosition(bookmark.position, bookmark.text)
+                        Toast.makeText(this@DocumentReaderActivity, "📍 Jumped to bookmark: ${bookmark.text.take(30)}...", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                val bookmarkLayout = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(15, 15, 15, 15)
+                }
+                
+                val bookmarkIcon = TextView(this).apply {
+                    text = "🔖"
+                    textSize = currentFontSize + 2f
+                    setPadding(0, 0, 0, 8)
+                }
+                
+                val bookmarkText = TextView(this).apply {
+                    text = bookmark.text.take(80) + if (bookmark.text.length > 80) "..." else ""
+                    textSize = currentFontSize
+                    setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#1B5E20"))
+                    setPadding(0, 0, 0, 5)
+                    setTypeface(typeface, Typeface.BOLD)
+                }
+                
+                if (bookmark.note.isNotEmpty()) {
+                    val noteText = TextView(this).apply {
+                        text = "📝 Note: ${bookmark.note}"
+                        textSize = currentFontSize - 1f
+                        setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#424242"))
+                        setPadding(0, 5, 0, 5)
+                        setTypeface(typeface, Typeface.ITALIC)
+                    }
+                    bookmarkLayout.addView(noteText)
+                }
+                
+                val timestampText = TextView(this).apply {
+                    text = "📅 Created: ${java.text.DateFormat.getDateTimeInstance().format(bookmark.timestamp)}"
+                    textSize = currentFontSize - 2f
+                    setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#666666"))
+                    setPadding(0, 5, 0, 0)
+                }
+                
+                val tapHint = TextView(this).apply {
+                    text = "💡 Tap to jump to this bookmark"
+                    textSize = currentFontSize - 2f
+                    setTextColor(if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2"))
+                    setPadding(0, 5, 0, 0)
+                }
+                
+                bookmarkLayout.addView(bookmarkIcon)
+                bookmarkLayout.addView(bookmarkText)
+                bookmarkLayout.addView(timestampText)
+                bookmarkLayout.addView(tapHint)
+                bookmarkCard.addView(bookmarkLayout)
+                
+                layout.addView(bookmarkCard)
+                layout.addView(View(this).apply { 
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 12)
+                })
+            }
+            
+            val instructionText = TextView(this).apply {
+                text = "✨ Total: ${bookmarks.size} bookmark(s)\n💡 Tap any bookmark to jump to its location"
+                textSize = currentFontSize - 1f
+                setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666"))
+                setPadding(10, 20, 10, 0)
+            }
+            
+            layout.addView(instructionText)
+            scrollView.addView(layout)
+            dialog.setView(scrollView)
+            dialog.show()
+            
+        } catch (e: Exception) {
+            Toast.makeText(this, "❌ Error loading bookmarks: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

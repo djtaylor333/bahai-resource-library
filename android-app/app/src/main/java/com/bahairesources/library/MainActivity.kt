@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.8.0 - Revolutionary Calendar & Religious Inclusivity!"
+            text = "v0.9.0 - Enhanced Document Management & Fast Calendar!"
             textSize = SettingsManager.getFontSize(this@MainActivity)
             setTextColor(if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#757575"))
             setPadding(0, 0, 0, 20)
@@ -187,11 +187,13 @@ class MainActivity : AppCompatActivity() {
         }
         
         val feastBtn = createNavButton("🌙", "Feasts") { showFeastInterface() }
+        val researchBtn = createNavButton("🔬", "Research") { showResearchInterface() }
         val linksBtn = createNavButton("🔗", "Links") { showLinksInterface() }
         val settingsBtn = createNavButton("⚙️", "Settings") { showSettingsInterface() }
         val aboutBtn = createNavButton("ℹ️", "About") { showAboutInterface() }
         
         featuresRow.addView(feastBtn)
+        featuresRow.addView(researchBtn)
         featuresRow.addView(linksBtn)
         featuresRow.addView(settingsBtn)
         featuresRow.addView(aboutBtn)
@@ -422,6 +424,11 @@ class MainActivity : AppCompatActivity() {
     
     private fun showFeastInterface() {
         val intent = Intent(this, FeastResourcesActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showResearchInterface() {
+        val intent = Intent(this, ResearchDocumentsActivity::class.java)
         startActivity(intent)
     }
     

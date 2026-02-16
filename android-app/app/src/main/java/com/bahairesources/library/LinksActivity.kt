@@ -192,13 +192,13 @@ class LinksActivity : AppCompatActivity() {
     }
     
     private fun openLink(url: String) {
-        if (url.isNotEmpty()) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            if (intent.resolveActivity(packageManager) != null) {
+        try {
+            if (url.isNotEmpty()) {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                 startActivity(intent)
-            } else {
-                Toast.makeText(this, "No browser available to open link", Toast.LENGTH_SHORT).show()
             }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Unable to open link: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     

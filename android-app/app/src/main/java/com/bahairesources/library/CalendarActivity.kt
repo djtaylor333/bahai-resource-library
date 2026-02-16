@@ -562,17 +562,39 @@ class CalendarActivity : AppCompatActivity() {
                         append("🛠️ Work is suspended on this holy day\n\n")
                     }
                     
-                    // Special information for Fast period
+                    // Check if this date is during the Fast period (March 2-20, 2026)
+                    val fastPeriod = isFastingDay(date)
+                    if (fastPeriod != null) {
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        append("\n⏰ Fast Times for Today:\n")
+                        append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
+                        append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
+                        
+                        when (fastPeriod) {
+                            "first" -> {
+                                append("📿 First Day of the Fast:\n")
+                                append("Today begins the 19-day Bahá'í Fast, a period of spiritual preparation leading to Naw-Rúz. ")
+                                append("During this time, Bahá'ís aged 15-70 abstain from food and drink from sunrise to sunset.\n\n")
+                                append("🙏 The Fast is a time for prayer, meditation, and spiritual renewal.\n\n")
+                                append("Exemptions include children, elderly, pregnant/nursing mothers, the sick, and travelers.")
+                            }
+                            "last" -> {
+                                append("📿 Final Day of the Fast:\n")
+                                append("The 19-day Fast concludes this evening at sunset, followed immediately by Naw-Rúz celebrations.\n\n")
+                                append("🎉 After sunset tonight, the new Bahá'í year begins!")
+                            }
+                            "active" -> {
+                                val fastDayNumber = getFastDayNumber(date)
+                                append("📿 Day $fastDayNumber of the 19-Day Fast:\n")
+                                append("Continue the spiritual discipline of fasting from sunrise to sunset. ")
+                                append("Use this time for prayer, meditation, and spiritual reflection.\n\n")
+                                append("🌱 The Fast brings spiritual purification and preparation for the new year.")
+                            }
+                        }
+                    }
+                    
+                    // Special information for specific holy days
                     when (bahaiEvent.name) {
-                        "Fast Begins" -> {
-                            append("The Bahá'í Fast is a 19-day period of spiritual preparation leading to Naw-Rúz. ")
-                            append("During this time, Bahá'ís aged 15-70 abstain from food and drink from sunrise to sunset. ")
-                            append("The Fast is a time for prayer, meditation, and spiritual renewal.\n\n")
-                            append("Exemptions include children, elderly, pregnant/nursing mothers, the sick, and travelers.")
-                        }
-                        "Fast Ends" -> {
-                            append("The 19-day Fast concludes this evening at sunset, followed immediately by Naw-Rúz celebrations.")
-                        }
                         "Ayyám-i-Há Begins" -> {
                             append("The Intercalary Days (Ayyám-i-Há) are four or five days of celebration, gift-giving, ")
                             append("charity, and preparation for the Fast. These days fall outside the regular 19-day month structure.")
@@ -602,6 +624,25 @@ class CalendarActivity : AppCompatActivity() {
                     append("🌍 ${religiousHoliday.name}\n")
                     append("${religiousHoliday.religion} ${religiousHoliday.type}\n\n")
                     append("${religiousHoliday.description}\n\n")
+                    
+                    // Check if this date is during the Fast period
+                    val fastPeriod = isFastingDay(date)
+                    if (fastPeriod != null) {
+                        append("││││││││││││││││││││\n\n")
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        append("⏰ Fast Times for Today:\n")
+                        append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
+                        append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
+                        
+                        val fastDayNumber = getFastDayNumber(date)
+                        when (fastPeriod) {
+                            "first" -> append("📿 First Day of the 19-Day Fast begins today.")
+                            "last" -> append("📿 Final Day of the Fast - Naw-Rúz begins at sunset!")
+                            "active" -> append("📿 Day $fastDayNumber of the 19-Day Fast continues.")
+                        }
+                        append("\n\n")
+                    }
+                    
                     append("Note: You can adjust which religious holidays are shown in Settings > Religious Holidays Display.")
                 }
             }
@@ -616,11 +657,37 @@ class CalendarActivity : AppCompatActivity() {
                 
                 buildString {
                     append("📅 $dayOfMonth\n\n")
-                    append("No Bahá'í observances on this date.")
+                    
+                    // Check if this date is during the Fast period
+                    val fastPeriod = isFastingDay(date)
+                    if (fastPeriod != null) {
+                        val sunTimes = LocationService.getSunTimesForLocation(this@CalendarActivity)
+                        append("⏰ Fast Times for Today:\n")
+                        append("🌅 Begin Fast: ${sunTimes.sunrise}\n")
+                        append("🌆 Break Fast: ${sunTimes.sunset}\n\n")
+                        
+                        val fastDayNumber = getFastDayNumber(date)
+                        when (fastPeriod) {
+                            "first" -> {
+                                append("📿 First Day of the Fast:\n")
+                                append("Today begins the 19-day Bahá'í Fast, a period of spiritual preparation leading to Naw-Rúz.\n\n")
+                            }
+                            "last" -> {
+                                append("📿 Final Day of the Fast:\n")
+                                append("The Fast concludes at sunset tonight, followed by Naw-Rúz celebrations!\n\n")
+                            }
+                            "active" -> {
+                                append("📿 Day $fastDayNumber of the 19-Day Fast:\n")
+                                append("Continue the spiritual discipline of fasting from sunrise to sunset.\n\n")
+                            }
+                        }
+                    } else {
+                        append("No Bahá'í observances on this date.\n\n")
+                    }
                     
                     val enabledReligionsCount = ReligiousHolidaysData.getEnabledReligionsCount(this@CalendarActivity)
-                    if (enabledReligionsCount == 0) {
-                        append("\n\n💡 Tip: You can enable holidays from other religions in Settings > Religious Holidays Display to see a more complete calendar view.")
+                    if (enabledReligionsCount == 0 && fastPeriod == null) {
+                        append("\n💡 Tip: You can enable holidays from other religions in Settings > Religious Holidays Display to see a more complete calendar view.")
                     }
                     
                     append("\n\nFor the most accurate Bahá'í calendar dates in your location, please consult your Local Spiritual Assembly or official Bahá'í calendar resources.")
@@ -885,24 +952,149 @@ class CalendarActivity : AppCompatActivity() {
     
     private fun showManualLocationDialog() {
         val input = android.widget.EditText(this).apply {
-            hint = "Enter city name (e.g., New York, NY)"
+            hint = "Enter city name (e.g., Paris, Tokyo, New York)"
             setPadding(50, 20, 50, 20)
+        }
+        
+        // Add some common search suggestions
+        val suggestionsText = TextView(this).apply {
+            text = "💡 Try: Tokyo, London, Sydney, Cairo, Mumbai, São Paulo, etc."
+            textSize = 12f
+            setTextColor(if (isDarkMode) Color.parseColor("#888888") else Color.parseColor("#666666"))
+            setPadding(50, 10, 50, 10)
+            setTypeface(typeface, android.graphics.Typeface.ITALIC)
+        }
+        
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(input)
+            addView(suggestionsText)
         }
         
         val dialog = android.app.AlertDialog.Builder(this)
             .setTitle("✏️ Set Manual Location")
-            .setMessage("Enter the name of your city for accurate sunrise/sunset times:")
-            .setView(input)
-            .setPositiveButton("Search") { _, _ ->
+            .setMessage("Enter your city name for accurate sunrise/sunset times.\nThe search will find the best match:")
+            .setView(container)
+            .setPositiveButton("Search & Set") { _, _ ->
                 val cityName = input.text.toString().trim()
                 if (cityName.isNotEmpty()) {
-                    searchForCity(cityName)
+                    searchAndSetLocation(cityName)
+                }
+            }
+            .setNeutralButton("Quick Search") { _, _ ->
+                val cityName = input.text.toString().trim()
+                if (cityName.isNotEmpty()) {
+                    showQuickSearchResults(cityName)
                 }
             }
             .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
             .create()
         
         dialog.show()
+    }
+    
+    private fun searchAndSetLocation(cityName: String) {
+        Toast.makeText(this, "Searching for $cityName...", Toast.LENGTH_SHORT).show()
+        
+        try {
+            val geocoder = android.location.Geocoder(this, Locale.getDefault())
+            // Try multiple variations of the city name for better results
+            val searchQueries = listOf(
+                cityName,
+                "$cityName, ${getCountryFromInput(cityName)}",
+                cityName.split(",")[0].trim() // Just city name without country
+            )
+            
+            var addresses: List<android.location.Address>? = null
+            
+            // Try each search variation until we get results
+            for (query in searchQueries) {
+                try {
+                    addresses = geocoder.getFromLocationName(query, 5)
+                    if (!addresses.isNullOrEmpty()) break
+                } catch (e: Exception) {
+                    continue
+                }
+            }
+            
+            if (!addresses.isNullOrEmpty()) {
+                // Use the first (best) result
+                val address = addresses[0]
+                val fullCityName = LocationService.getCityNameFromCoordinates(this, address.latitude, address.longitude)
+                LocationService.saveManualLocation(this, fullCityName, address.latitude, address.longitude)
+                updateCalendarDisplay()
+                Toast.makeText(this, "✅ Location set to: $fullCityName", Toast.LENGTH_LONG).show()
+            } else {
+                // Search failed, show quick search options
+                showQuickSearchResults(cityName)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Search error. Showing quick options...", Toast.LENGTH_SHORT).show()
+            showQuickSearchResults(cityName)
+        }
+    }
+    
+    private fun showQuickSearchResults(searchQuery: String) {
+        val worldCities = listOf(
+            "New York, USA" to Pair(40.7128, -74.0060),
+            "Los Angeles, USA" to Pair(34.0522, -118.2437),
+            "Chicago, USA" to Pair(41.8781, -87.6298),
+            "London, UK" to Pair(51.5074, -0.1278),
+            "Paris, France" to Pair(48.8566, 2.3522),
+            "Berlin, Germany" to Pair(52.5200, 13.4050),
+            "Tokyo, Japan" to Pair(35.6762, 139.6503),
+            "Sydney, Australia" to Pair(-33.8688, 151.2093),
+            "Toronto, Canada" to Pair(43.6532, -79.3832),
+            "Mumbai, India" to Pair(19.0760, 72.8777),
+            "Cairo, Egypt" to Pair(30.0444, 31.2357),
+            "São Paulo, Brazil" to Pair(-23.5505, -46.6333),
+            "Mexico City, Mexico" to Pair(19.4326, -99.1332),
+            "Istanbul, Turkey" to Pair(41.0082, 28.9784),
+            "Moscow, Russia" to Pair(55.7558, 37.6176),
+            "Try search again..." to Pair(0.0, 0.0)
+        )
+        
+        // Filter cities that match the search query (fuzzy matching)
+        val filteredCities = worldCities.filter { (cityName, _) ->
+            cityName.contains(searchQuery, ignoreCase = true) ||
+                    searchQuery.contains(cityName.split(",")[0], ignoreCase = true) ||
+                    cityName.split(",")[0].contains(searchQuery, ignoreCase = true)
+        }.ifEmpty { worldCities } // If no matches, show all options
+        
+        val cityNames = filteredCities.map { it.first }.toTypedArray()
+        
+        val dialog = android.app.AlertDialog.Builder(this)
+            .setTitle("🔍 Quick Location Search")
+            .setMessage("\"$searchQuery\" not found. Choose from these options:")
+            .setItems(cityNames) { _, which ->
+                val selectedCity = filteredCities[which]
+                if (selectedCity.first == "Try search again...") {
+                    showManualLocationDialog()
+                } else {
+                    val (cityName, coords) = selectedCity
+                    LocationService.saveManualLocation(this, cityName, coords.first, coords.second)
+                    updateCalendarDisplay()
+                    Toast.makeText(this, "✅ Location set to: $cityName", Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun getCountryFromInput(input: String): String {
+        return when {
+            input.contains("usa", ignoreCase = true) || input.contains("america", ignoreCase = true) -> "USA"
+            input.contains("uk", ignoreCase = true) || input.contains("britain", ignoreCase = true) -> "UK"
+            input.contains("canada", ignoreCase = true) -> "Canada"
+            input.contains("australia", ignoreCase = true) -> "Australia"
+            input.contains("france", ignoreCase = true) -> "France"
+            input.contains("germany", ignoreCase = true) -> "Germany"
+            input.contains("japan", ignoreCase = true) -> "Japan"
+            input.contains("india", ignoreCase = true) -> "India"
+            else -> ""
+        }
     }
     
     private fun searchForCity(cityName: String) {
@@ -1093,6 +1285,49 @@ class CalendarActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT, 
                 height
             )
+        }
+    }
+    
+    private fun isFastingDay(date: String): String? {
+        return try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val inputDate = sdf.parse(date) ?: return null
+            val calendar = Calendar.getInstance().apply { time = inputDate }
+            
+            val month = calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            
+            when {
+                month == 3 && day >= 2 && day <= 20 -> {
+                    when (day) {
+                        2 -> "first"
+                        20 -> "last"
+                        else -> "active"
+                    }
+                }
+                else -> null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    private fun getFastDayNumber(date: String): Int {
+        return try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val inputDate = sdf.parse(date) ?: return 1
+            val calendar = Calendar.getInstance().apply { time = inputDate }
+            
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+            
+            // Fast starts March 2, so March 2 = Day 1, March 3 = Day 2, etc.
+            if (calendar.get(Calendar.MONTH) + 1 == 3 && day >= 2 && day <= 20) {
+                day - 1 // March 2 becomes Day 1
+            } else {
+                1
+            }
+        } catch (e: Exception) {
+            1
         }
     }
 }

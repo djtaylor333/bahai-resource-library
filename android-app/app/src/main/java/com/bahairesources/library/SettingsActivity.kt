@@ -136,7 +136,8 @@ class SettingsActivity : AppCompatActivity() {
             isChecked = isDarkMode
             setOnCheckedChangeListener { _, isChecked ->
                 SettingsManager.setDarkMode(this@SettingsActivity, isChecked)
-                showRestartDialog("Theme changed. Restart the app to apply changes.")
+                // Apply theme change immediately without restart
+                applyThemeChange(isChecked)
             }
         }
         
@@ -548,7 +549,8 @@ class SettingsActivity : AppCompatActivity() {
             .setTitle("Select Font Size")
             .setSingleChoiceItems(options, currentIndex) { dialog, which ->
                 SettingsManager.setFontSize(this, sizes[which])
-                showRestartDialog("Font size changed. Restart the app to apply changes.")
+                Toast.makeText(this, "Font size updated", Toast.LENGTH_SHORT).show()
+                recreate() // Recreate activity to apply font changes
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
@@ -582,7 +584,8 @@ class SettingsActivity : AppCompatActivity() {
             .setMessage("Are you sure you want to reset all settings to defaults? This cannot be undone.")
             .setPositiveButton("Reset") { _, _ ->
                 SettingsManager.resetToDefaults(this)
-                showRestartDialog("Settings reset. Restart the app to apply changes.")
+                Toast.makeText(this, "Settings reset to defaults", Toast.LENGTH_SHORT).show()
+                recreate() // Recreate activity to apply changes
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -651,5 +654,18 @@ class SettingsActivity : AppCompatActivity() {
         
         textView.text = spannableString
         textView.movementMethod = LinkMovementMethod.getInstance()
+    }
+    
+    private fun applyThemeChange(darkMode: Boolean) {
+        isDarkMode = darkMode
+        
+        // Show feedback to user
+        Toast.makeText(this, 
+            "Theme changed to ${if (darkMode) "Dark" else "Light"} mode", 
+            Toast.LENGTH_SHORT
+        ).show()
+        
+        // Recreate the activity to apply theme changes
+        recreate()
     }
 }
