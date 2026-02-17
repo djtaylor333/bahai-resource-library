@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.11.0 - Improved UX & Enhanced Functionality!"
+            text = "v0.12.2 - Polish & Perfect Edition!"
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
             setTextColor(if (isDarkMode) Color.parseColor("#CAC4D0") else Color.parseColor("#49454F"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_lg)
@@ -326,12 +326,12 @@ class MainActivity : AppCompatActivity() {
         val descView = TextView(this).apply {
             text = description
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            // Enhanced contrast for description text
-            setTextColor(if (isDarkMode) Color.parseColor("#F0F0F0") else Color.parseColor("#222222"))
+            // Better contrast - darker text on light, brighter text on dark  
+            setTextColor(if (isDarkMode) Color.parseColor("#FFFFFF") else Color.parseColor("#000000"))
             maxLines = 2
-            // Add subtle text shadow for better readability in dark mode
+            // Enhanced text shadow for better readability
             if (isDarkMode) {
-                setShadowLayer(1f, 0.5f, 0.5f, Color.parseColor("#88000000"))
+                setShadowLayer(2f, 1f, 1f, Color.parseColor("#AA000000"))
             }
         }
         
@@ -410,13 +410,13 @@ class MainActivity : AppCompatActivity() {
         
         val iconView = TextView(this).apply {
             text = icon
-            textSize = 20f
+            textSize = 28f  // Increased from 20f for better readability
             gravity = android.view.Gravity.CENTER
         }
         
         val labelView = TextView(this).apply {
             text = label
-            textSize = 10f
+            textSize = 12f  // Increased from 10f for better readability
             setTextColor(if (isActive) 
                 (if (isDarkMode) Color.parseColor("#64B5F6") else Color.parseColor("#1976D2")) 
                 else (if (isDarkMode) Color.parseColor("#B0B0B0") else Color.parseColor("#666666")))

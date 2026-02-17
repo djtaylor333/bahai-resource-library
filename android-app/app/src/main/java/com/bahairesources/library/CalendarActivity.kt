@@ -268,8 +268,9 @@ class CalendarActivity : AppCompatActivity() {
         }
         
         val calendarModeToggle = Button(this).apply {
-            text = if (isBahaiCalendarMode) "🌙 Bahá'í Calendar" else "📅 Gregorian Calendar"
-            setBackgroundColor(if (isBahaiCalendarMode) Color.parseColor("#1976D2") else Color.parseColor("#4CAF50"))
+            // Fixed: Show the TARGET mode, not current mode
+            text = if (isBahaiCalendarMode) "📅 Gregorian Calendar" else "🌙 Bahá'í Calendar"
+            setBackgroundColor(if (isBahaiCalendarMode) Color.parseColor("#4CAF50") else Color.parseColor("#1976D2"))
             setTextColor(Color.WHITE)
             setPadding(20, 10, 20, 10)
             textSize = 12f

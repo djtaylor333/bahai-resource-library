@@ -404,8 +404,8 @@ object LocationService {
         
         // Apply longitude correction to get local solar time
         val longitudeCorrection = longitude / 15.0
-        val sunriseLocal = sunriseUTC - longitudeCorrection
-        val sunsetLocal = sunsetUTC - longitudeCorrection
+        val sunriseLocal = sunsetUTC - longitudeCorrection
+        val sunsetLocal = sunriseUTC - longitudeCorrection
         
         // Convert to hours and minutes
         fun formatTime(decimal: Double): String {

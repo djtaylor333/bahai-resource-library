@@ -264,21 +264,21 @@ class AboutActivity : AppCompatActivity() {
         
         val versionText = TextView(this).apply {
             text = """
-                Version: 0.8.0 "Revolutionary Edition"
-                Release Date: February 2026
-                Build: Dual Calendar & Religious Inclusivity
+                Version: 0.12.2 "Polish & Perfect Edition"
+                Release Date: February 17, 2026  
+                Build: Enhanced UX & Performance
                 
-                📊 What's New in v0.8.0:
-                • Universal dark mode support
-                • Comprehensive settings system  
-                • Vastly expanded prayer collection (80+ prayers)
-                • Enhanced feast resources section
-                • Official links directory
-                • Improved search functionality
-                • Font size customization
-                • Better calendar integration
-                • 9-pointed star official icon
-                • Enhanced document reader
+                📊 What's New in v0.12.2:
+                • 🌅 FIXED: Sunrise/sunset times now display correctly (no longer swapped)  
+                • 📅 FIXED: Calendar toggle shows target mode instead of current mode
+                • 🔍 ENHANCED: Navigation icons enlarged by 40% for better visibility
+                • 🎨 IMPROVED: Text contrast enhanced to pure white/black for readability  
+                • 🏷️ UPDATED: Version display now consistently shows v0.12.2 throughout app
+                • ℹ️ REFRESHED: About page information updated to current version
+                • ⚡ OPTIMIZED: Astronomical calculation algorithm corrected
+                • 🎯 POLISHED: User interface refinements based on testing feedback
+                • 📍 ENHANCED: Location-based sunrise/sunset accuracy improved
+                • ⏰ CORRECTED: Fast time calculations now properly synchronized
             """.trimIndent()
             textSize = currentFontSize
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
