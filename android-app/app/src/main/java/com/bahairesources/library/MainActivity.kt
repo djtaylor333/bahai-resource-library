@@ -16,12 +16,14 @@ import android.util.TypedValue
 class MainActivity : AppCompatActivity() {
     
     private var isDarkMode = false
+    private var currentFontSize = SettingsManager.FONT_MEDIUM
     
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
             super.onCreate(savedInstanceState)
-            // Initialize theme from SettingsManager
+            // Initialize theme and font size from SettingsManager
             isDarkMode = SettingsManager.isDarkMode(this)
+            currentFontSize = SettingsManager.getFontSize(this)
             Log.d("BahaiApp", "MainActivity started")
             createUI()
         } catch (e: Exception) {
@@ -42,11 +44,13 @@ class MainActivity : AppCompatActivity() {
     
     override fun onResume() {
         super.onResume()
-        // Refresh theme in case it was changed in settings
+        // Refresh theme and font size in case they were changed in settings
         val currentDarkMode = SettingsManager.isDarkMode(this)
-        if (currentDarkMode != isDarkMode) {
+        val currentFont = SettingsManager.getFontSize(this)
+        if (currentDarkMode != isDarkMode || currentFont != currentFontSize) {
             isDarkMode = currentDarkMode
-            recreate() // Recreate activity with new theme
+            currentFontSize = currentFont
+            recreate() // Recreate activity with new theme/font
         }
     }
     
@@ -84,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         }
         
         val versionText = TextView(this).apply {
-            text = "v0.12.2 - Polish & Perfect Edition!"
+            text = "v0.12.3 - Refined & Readable Edition!"
             setTextAppearance(R.style.TextAppearance_App_BodyMedium)
             setTextColor(if (isDarkMode) Color.parseColor("#CAC4D0") else Color.parseColor("#49454F"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_lg)
@@ -312,27 +316,24 @@ class MainActivity : AppCompatActivity() {
         
         val titleView = TextView(this).apply {
             text = title
-            setTextAppearance(R.style.TextAppearance_App_TitleMedium)
-            // Enhanced contrast: Pure white on dark, pure black on light
+            textSize = currentFontSize + 4f  // Use font size settings
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            // High contrast colors with stronger shadows
             setTextColor(if (isDarkMode) Color.parseColor("#FFFFFF") else Color.parseColor("#000000"))
             val bottomMargin = resources.getDimensionPixelSize(R.dimen.spacing_xs)
             setPadding(0, 0, 0, bottomMargin)
-            // Add text shadow for better readability in dark mode
-            if (isDarkMode) {
-                setShadowLayer(2f, 1f, 1f, Color.parseColor("#AA000000"))
-            }
+            // Stronger text shadow for better readability
+            setShadowLayer(3f, 2f, 2f, if (isDarkMode) Color.parseColor("#FF000000") else Color.parseColor("#80000000"))
         }
         
         val descView = TextView(this).apply {
             text = description
-            setTextAppearance(R.style.TextAppearance_App_BodyMedium)
-            // Better contrast - darker text on light, brighter text on dark  
-            setTextColor(if (isDarkMode) Color.parseColor("#FFFFFF") else Color.parseColor("#000000"))
+            textSize = currentFontSize + 1f  // Use font size settings
+            // High contrast colors with stronger shadows  
+            setTextColor(if (isDarkMode) Color.parseColor("#F0F0F0") else Color.parseColor("#333333"))
             maxLines = 2
-            // Enhanced text shadow for better readability
-            if (isDarkMode) {
-                setShadowLayer(2f, 1f, 1f, Color.parseColor("#AA000000"))
-            }
+            // Stronger text shadow for better readability
+            setShadowLayer(3f, 2f, 2f, if (isDarkMode) Color.parseColor("#FF000000") else Color.parseColor("#80000000"))
         }
         
         textLayout.addView(titleView)

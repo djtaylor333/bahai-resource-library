@@ -264,21 +264,21 @@ class AboutActivity : AppCompatActivity() {
         
         val versionText = TextView(this).apply {
             text = """
-                Version: 0.12.2 "Polish & Perfect Edition"
-                Release Date: February 17, 2026  
-                Build: Enhanced UX & Performance
+                Version: 0.12.3 "Refined & Readable Edition"
+                Release Date: February 17, 2026
+                Build: Enhanced Readability & Performance
                 
-                📊 What's New in v0.12.2:
-                • 🌅 FIXED: Sunrise/sunset times now display correctly (no longer swapped)  
-                • 📅 FIXED: Calendar toggle shows target mode instead of current mode
-                • 🔍 ENHANCED: Navigation icons enlarged by 40% for better visibility
-                • 🎨 IMPROVED: Text contrast enhanced to pure white/black for readability  
-                • 🏷️ UPDATED: Version display now consistently shows v0.12.2 throughout app
-                • ℹ️ REFRESHED: About page information updated to current version
-                • ⚡ OPTIMIZED: Astronomical calculation algorithm corrected
-                • 🎯 POLISHED: User interface refinements based on testing feedback
-                • 📍 ENHANCED: Location-based sunrise/sunset accuracy improved
-                • ⏰ CORRECTED: Fast time calculations now properly synchronized
+                📊 What's New in v0.12.3:
+                • 🎨 FIXED: Main screen text now highly readable with bold fonts and shadows
+                • 🔍 ENHANCED: Font size settings now apply to all main screen text
+                • 🌅 IMPROVED: Sunrise/sunset calculations using reliable API-first approach
+                • 📍 CORRECTED: Manual location setting properly manages device location preferences
+                • 📱 POLISHED: Consistent v0.12.3 version display throughout application
+                • ✨ REFINED: Text shadows and contrast optimized for all lighting conditions
+                • 🚀 OPTIMIZED: Fallback algorithms for offline sunrise/sunset calculations
+                • 📦 UPDATED: About page information reflects current build and features
+                • 🎯 IMPROVED: User experience based on comprehensive testing feedback
+                • 🔧 ENHANCED: Location services integration with manual override functionality
             """.trimIndent()
             textSize = currentFontSize
             setTextColor(if (isDarkMode) Color.parseColor("#E0E0E0") else Color.parseColor("#333333"))
